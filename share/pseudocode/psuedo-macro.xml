@@ -67,14 +67,14 @@
                 <max_iter>10</max_iter>
                 <max_halving>5</max_halving>
                 <max_doubling>5</max_doubling>
-                <eps>0.3</eps> <!-- Max perturbation to go to. I.E. start from 0.0 and finish at 0.3 -->
+                <max_eps>0.3</max_eps> <!-- Max perturbation to go to. I.E. start from 0.0 and finish at 0.3 -->
                 <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
                 <batch_size>128</batch_size>
                 <verbose>1</verbose>
             </cw_inf>
 
             <bim>
-                <eps>0.3</eps> <!-- Same as Carlini Wagner node -->
+                <max_eps>0.3</max_eps> <!-- Same as Carlini Wagner node -->
                 <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
                 <max_iter>100</max_iter>
                 <targeted>0</targeted>
@@ -84,7 +84,7 @@
 
             <fgsm>
                 <norm>inf</norm> <!-- Possible values are 1, 2, inf (or np.inf) -->
-                <eps>0.3</eps>
+                <max_eps>0.3</max_eps>
                 <eps_step>0.1</eps_step>
                 <targeted>0</targeted>
                 <num_random_int>0</num_random_int>
