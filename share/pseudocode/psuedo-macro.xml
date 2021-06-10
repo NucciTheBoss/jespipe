@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CORE NOTES:
+     Forbidden characters in text nodes: &, <, >, ', " 
+        BeautifulSoup can handle these characters if they are present in
+        text nodes, but I really just do not want to deal converting
+        these characters to their unicode counterpart. 
+        
+     Bool values: 0 -> False; 1 -> True -->
+
+<!-- Simu is shorthand for "simulation". simu is the root node for this XML Schema.
+     In order for XML to be well-formed, every document must have a root node.
+     Nested within this root node will be the core steps neccessary for the pipeline. -->
+<simu>
+    <!-- The training tag is intended for models that still need to be trained 
+         using the manipulated data. -->
+    <training>
+        <dataset file="/path/to/some/file.csv">
+            <model>
+                <!-- The unique name of the model. -->
+                <name>my_model_name</name>
+                
+                <!-- XGBoost feature selection. Pass value of n_features argument as 
+                     child text node. -->
+                <xgboost>
+                    <n_features>11</n_features>
+                </xgboost>
+
+                <!-- Random Forest feature selection. Mere mention of this tag 
+                     will tell the pipeline to perform this data manipulation. -->
+                <randomforest></randomforest>
+                
+                <!-- Principle Component Analysis dimensionality reduction. Pass value 
+                     of n_features argument as child text node. -->
+                <pca>
+                    <n_features>11</n_features>
+                </pca>
+
+                <!-- Candlestick trend. Pass value of time_interval argument as child text node. -->
+                <candlestick>
+                    <time_interval>20</time_interval>
+                </candlestick>
+
+                <!-- Each trained model will be saved as $model_name-$datamanipulationtechnique-$datasetname.h5. 
+                     When loading back in the trained models they will be globbed with:
+                     glob.glob("*-*-$datasetname.h5") and then their reference will be sent to worker nodes. -->
+            </model>
+        </dataset>
+
+        <!-- Can include multiple datasets in this tag -->
+    </training>
+
+    <!-- The training tag is for directing the pipeline on what datasets to attack
+         as well as which attacks to use on each of the datasets -->
+    <attack>
+        <dataset file="/path/to/some/file.csv">
+            <!-- All models corresponding to this dataset will be attacked -->
+            <!-- Parameters for each attack are based off of the passable parameters
+                 as specified in the adversarial robustness toolbox:
+                 https://adversarial-robustness-toolbox.readthedocs.io/en/stable/modules/attacks/evasion.html -->
+            <cw_inf>
+                <!-- Global defaults will be specified in .config.json,
+                     but they can be modified as needed by the user 
+                     conducting the simulation **Same holds true for the other attacks!** -->
+                <confidence>0.0</confidence>
+                <targeted>0</targeted>
+                <learning_rate>0.01</learning_rate>
+                <max_iter>10</max_iter>
+                <max_halving>5</max_halving>
+                <max_doubling>5</max_doubling>
+                <eps>0.3</eps> <!-- Max perturbation to go to. I.E. start from 0.0 and finish at 0.3 -->
+                <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
+                <batch_size>128</batch_size>
+                <verbose>1</verbose>
+            </cw_inf>
+
+            <bim>
+                <eps>0.3</eps> <!-- Same as Carlini Wagner node -->
+                <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
+                <max_iter>100</max_iter>
+                <targeted>0</targeted>
+                <batch_size>32</batch_size>
+                <verbose>1</verbose>
+            </bim>
+
+            <fgsm>
+                <norm>inf</norm> <!-- Possible values are 1, 2, inf (or np.inf) -->
+                <eps>0.3</eps>
+                <eps_step>0.1</eps_step>
+                <targeted>0</targeted>
+                <num_random_int>0</num_random_int>
+                <batch_size>32</batch_size>
+                <minimal>0</minimal>
+            </fgsm>
+        </dataset>
+
+        <!-- Can include multiple datasets in this tag -->
+    </attack>
+ 
+    <cleanup>
+        <!-- Still need to figure out what exactly to put here!
+             So many possibilities that I do not know what to choose! 
+             Ideas:
+                Generate graphs with PNG
+                Generate report in markdown
+                Erase models
+                Clean-up adversarial examples? -->
+    </cleanup>
+</simu>
