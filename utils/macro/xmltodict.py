@@ -1,11 +1,19 @@
 from bs4 import BeautifulSoup
 
 
-def xmltodict(xml_file):
+def xmltodict(xml_file, xgb_config, rf_config, pca_config,
+              candle_config, cw_inf_config, bim_config, fgsm_config):
     """Return XML file as a Python dictionary.
     
     Keyword arguments:
-    xml_file -- marco XML file to convert to a Python dictionary."""
+    xml_file -- marco XML file to convert to a Python dictionary.
+    xgb_config -- configuration dictionary for XGBoost feature selection.
+    rf_config -- configuration dictionary for Random Forest feature selection.
+    pca_config -- configuration dictionary for PCA dimensionality reduction.
+    candle_config -- configuration dictionary for Candlestick trend extraction.
+    cw_inf_config -- configuration dictionary for CW_inf attack.
+    bim_config -- configuration dictionary for BIM attack.
+    fgsm_config -- configuration dictionary for FGSM attack."""
     fin = open(xml_file, "rt"); xml_data = fin.read(); fin.close()
     soup = BeautifulSoup(xml_data, "xml")
 
@@ -40,29 +48,57 @@ def xmltodict(xml_file):
                     pcamanip = model_datum.find_all("pca")
                     candlemanip = model_datum.find_all("candlestick")
 
-                    # TODO: Add attribute to manipulation tag that allows it to be uniquely identified.
                     if xgbmanip != []:
-                        # Pull n_features text value and convert to int
-                        n_feat = xgbmanip.find("n_features"); n_feat = int(n_feat.text)
-                        d["train"][data_name][model_name.text]["xgboost"] = {"n_features": n_feat}
+                        for xgb in xgbmanip:
+                            # Pull n_features text value and convert to int
+                            n_feat = xgb.find("n_features"); n_feat = int(n_feat.text)
+                            d["train"][data_name][model_name.text][xgb["tag"]] = dict()
+                            d["train"][data_name][model_name.text][xgb["tag"]].update({"n_features": n_feat})
 
                     if ranforestmanip != []:
-                        # Mere mention of randomforest will tell the pipeline to use it
-                        # Use 1 as a placeholder value
-                        d["train"][data_name][model_name.text]["randomforest"] = 1
+                        for rf in ranforestmanip:
+                            # Mere mention of randomforest will tell the pipeline to use it
+                            # Use 1 as a placeholder value
+                            d["train"][data_name][model_name.text][rf["tag"]] = dict()
+                            d["train"][data_name][model_name.text][rf["tag"]].update({"placeholder": 1})
 
                     if pcamanip != []:
-                        # Pull n_features text value and convert to int
-                        n_feat = pcamanip.find("n_features"); n_feat = int(n_feat.text)
+                        for pca in pcamanip:
+                            # Pull n_features text value and convert to int
+                            n_feat = pca.find("n_features"); n_feat = int(n_feat.text)
+                            d["train"][data_name][model_name.text][pca["tag"]] = dict()
+                            d["train"][data_name][model_name.text][pca["tag"]].update({"n_features": n_feat})
 
                     if candlemanip != []:
-                        pass
+                        for cand in candlemanip:
+                            # Pull time_interval text value and convert to int
+                            time_int = cand.find("time_interval"); int(time_int.text)
+                            d["train"][data_name][model_name.text][cand["tag"]] = dict()
+                            d["train"][data_name][model_name.text][cand["tag"]].update({"time_interval": time_int})
 
     # Parse attack tag; skip if not specified in XML file
     if attack_data != []:
         d["attack"] = dict()
         for dataset in attack_data:
-            pass
+            # Get dataset path and name
+            data_path = dataset["file"]
+            data_name = data_path.split("/"); data_name = data_name[-1].split("."); data_name = data_name[0]
+            d["attack"][data_name] = dict()
+            d["attack"][data_name].update({"path": data_path})
+
+            # Pull all the attack tags
+            cw_inf_attacks = attack_data.find_all("cw_inf")
+            bim_attacks = attack_data.find_all("bim")
+            fgsm_attacks = attack_data.find_all("fgsm")
+
+            if cw_inf_attacks != []:
+                pass
+
+            if bim_attacks != []:
+                pass
+
+            if fgsm_attacks != []:
+                pass
 
     # Parse clean tag; skip if not specified in XML file
     if clean_data != []:

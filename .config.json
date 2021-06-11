@@ -10,6 +10,24 @@
         }
     },
 
+    "datamanips": {
+        "xgboost": {
+            "n_features": 11
+        },
+
+        "randomforest": {
+            "placeholder": 1
+        },
+
+        "pca": {
+            "n_features": 11
+        },
+
+        "candlestick": {
+            "time_interval": 20
+        }
+    },
+
     "attacks": {
         "CW_inf": {
             "confidence": 0.0,
