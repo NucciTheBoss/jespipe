@@ -21,22 +21,22 @@
                 
                 <!-- XGBoost feature selection. Pass value of n_features argument as 
                      child text node. -->
-                <xgboost>
+                <xgboost tag="xgb1">
                     <n_features>11</n_features>
                 </xgboost>
 
                 <!-- Random Forest feature selection. Mere mention of this tag 
                      will tell the pipeline to perform this data manipulation. -->
-                <randomforest></randomforest>
+                <randomforest tag="rf1"></randomforest>
                 
                 <!-- Principle Component Analysis dimensionality reduction. Pass value 
                      of n_features argument as child text node. -->
-                <pca>
+                <pca tag="pca1">
                     <n_features>11</n_features>
                 </pca>
 
                 <!-- Candlestick trend. Pass value of time_interval argument as child text node. -->
-                <candlestick>
+                <candlestick tag="cand1">
                     <time_interval>20</time_interval>
                 </candlestick>
 
@@ -57,7 +57,7 @@
             <!-- Parameters for each attack are based off of the passable parameters
                  as specified in the adversarial robustness toolbox:
                  https://adversarial-robustness-toolbox.readthedocs.io/en/stable/modules/attacks/evasion.html -->
-            <cw_inf>
+            <cw_inf tag="cw_inf1">
                 <!-- Global defaults will be specified in .config.json,
                      but they can be modified as needed by the user 
                      conducting the simulation **Same holds true for the other attacks!** -->
@@ -68,21 +68,21 @@
                 <max_halving>5</max_halving>
                 <max_doubling>5</max_doubling>
                 <max_eps>0.3</max_eps> <!-- Max perturbation to go to. I.E. start from 0.0 and finish at 0.3 -->
-                <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
+                <eps_step>0.1</eps_step> <!-- How big each jump should be when iterating over the model and data set -->
                 <batch_size>128</batch_size>
                 <verbose>1</verbose>
             </cw_inf>
 
-            <bim>
+            <bim tag="bim1">
                 <max_eps>0.3</max_eps> <!-- Same as Carlini Wagner node -->
-                <eps_step>0.1<eps_step> <!-- How big each jump should be when iterating over the model and data set -->
+                <eps_step>0.1</eps_step> <!-- How big each jump should be when iterating over the model and data set -->
                 <max_iter>100</max_iter>
                 <targeted>0</targeted>
                 <batch_size>32</batch_size>
                 <verbose>1</verbose>
             </bim>
 
-            <fgsm>
+            <fgsm tag="fgsm1">
                 <norm>inf</norm> <!-- Possible values are 1, 2, inf (or np.inf) -->
                 <max_eps>0.3</max_eps>
                 <eps_step>0.1</eps_step>
