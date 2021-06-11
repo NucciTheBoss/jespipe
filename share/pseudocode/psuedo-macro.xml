@@ -13,7 +13,7 @@
 <simu>
     <!-- The training tag is intended for models that still need to be trained 
          using the manipulated data. -->
-    <training>
+    <train>
         <dataset file="/path/to/some/file.csv">
             <model>
                 <!-- The unique name of the model. -->
@@ -47,7 +47,7 @@
         </dataset>
 
         <!-- Can include multiple datasets in this tag -->
-    </training>
+    </train>
 
     <!-- The training tag is for directing the pipeline on what datasets to attack
          as well as which attacks to use on each of the datasets -->
@@ -96,7 +96,7 @@
         <!-- Can include multiple datasets in this tag -->
     </attack>
  
-    <cleanup>
+    <clean>
         <!-- Still need to figure out what exactly to put here!
              So many possibilities that I do not know what to choose! 
              Ideas:
@@ -104,5 +104,5 @@
                 Generate report in markdown
                 Erase models
                 Clean-up adversarial examples? -->
-    </cleanup>
+    </clean>
 </simu>
