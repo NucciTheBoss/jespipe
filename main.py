@@ -1,42 +1,85 @@
+from io import FileIO
 from mpi4py import MPI
+import json
+import sys
+import re
 
 
+# Global values to be shared across all nodes
 comm = MPI.COMM_WORLD
+size = comm.Get_size()
 rank = comm.Get_rank()
+CONFIG_FILE = ".config.json"
+
 
 """Bare bones skeletal structure of what the MPI application will
    look like. Will flesh out more as more pieces of the pipeline
    are completed. **Will use 8 nodes on Ursula but I don't want
    to kill my computer during my initial development**"""
 if rank == 0:
-    data1 = {"a": 42, "b": 69}
-    data2 = {"c": 3.14, "d": 0.5}
-    data3 = {"e": 2, "f": 100}
+    # Imports only necessary for manager node
+    from utils.workerops import greenlight as gl
     
-    # Send out data
-    comm.send(data1, dest=1, tag=10)
-    comm.send(data2, dest=2, tag=11)
-    comm.send(data3, dest=3, tag=12)
+    # Read in config to get default configurations file
+    fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
+    config = json.loads(config)
 
-    # Receive report back from workers
-    comm.recv(source=1, tag=14)
-    comm.recv(source=2, tag=15)
-    comm.recv(source=3, tag=16)
+    # Parse in data from the config file
+    RNN_param = config["algorithms"]["RNN"]
+    CW_inf = config["attacks"]["CW_inf"]
+    BIM = config["attacks"]["BIM"]
+    FGSM = config["attacks"]["FGSM"]
+
+    # Read in marco XML file
+    if len(sys.argv) != 2:
+        gl.killmsg(comm, size, True)
+        raise ValueError("No macro XML file specified before launching pipeline.")
+
+    macro_file = sys.argv[1]
+
+    # Perform checks to verify that XML file is in good format
+    if re.search("\Wxml", macro_file):
+        pass
+
+    else:
+        gl.killmsg(comm, size, True)
+        raise(IOError("Specified macro file not in XML format."))
+    
+    gl.killmsg(comm, size, False)
+    print("All done!")
 
 elif rank == 1:
-    data = comm.recv(source=0, tag=10)
-    print(data)
-    print("Hello from worker #1!")
-    comm.send("", dest=0, tag=14)
+    greenlight = comm.recv(source=0, tag=1)
+    if greenlight != 1:
+        exit(127)
+
+    else:
+        print("Worker #1 is ready to go!")
 
 elif rank == 2:
-    data = comm.recv(source=0, tag=11)
-    print(data)
-    print("Hello from worker #2!")
-    comm.send("", dest=0, tag=15)
+    greenlight = comm.recv(source=0, tag=2)
+    if greenlight != 1:
+        exit(127)
+
+    else:
+        print("Worker #2 is ready to go!")
 
 elif rank == 3:
-    data = comm.recv(source=0, tag=12)
-    print(data)
-    print("Hello from worker #3!")
-    comm.send("", dest=0, tag=16)
+    greenlight = comm.recv(source=0, tag=3)
+    if greenlight != 1:
+        exit(127)
+
+    else:
+        print("Worker #3 is ready to go!")
+
+elif rank == 4:
+    pass
+
+elif rank == 5:
+    pass
+
+elif rank == 6:
+    pass
+
+elif rank == 7:
+    pass
