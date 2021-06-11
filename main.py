@@ -1,4 +1,3 @@
-from io import FileIO
 from mpi4py import MPI
 import json
 import sys
@@ -19,14 +18,19 @@ CONFIG_FILE = ".config.json"
 if rank == 0:
     # Imports only necessary for manager node
     from utils.workerops import greenlight as gl
-    
+    from utils.macro import xml2dict as x2d
+
     # Read in config to get default configurations file
     fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
     config = json.loads(config)
 
     # Parse in data from the config file
-    RNN_param = config["algorithms"]["RNN"]
-    CW_inf = config["attacks"]["CW_inf"]
+    RNN_PARAM = config["algorithms"]["RNN"]
+    XGBOOST = config["datamanips"]["xgboost"]
+    RANDOM_FOREST = config["datamanips"]["randomforest"]
+    PCA = config["datamanips"]["pca"]
+    CANDLESTICK = config["datamanips"]["candlestick"]
+    CW_INF = config["attacks"]["CW_inf"]
     BIM = config["attacks"]["BIM"]
     FGSM = config["attacks"]["FGSM"]
 
@@ -43,8 +47,11 @@ if rank == 0:
 
     else:
         gl.killmsg(comm, size, True)
-        raise(IOError("Specified macro file not in XML format."))
+        raise(ValueError("Specified macro file not in XML format."))
     
+    d = x2d.xml2dict(macro_file, XGBOOST, RANDOM_FOREST, PCA, CANDLESTICK,
+                     CW_INF, BIM, FGSM)
+    print(d)
     gl.killmsg(comm, size, False)
     print("All done!")
 
