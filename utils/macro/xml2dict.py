@@ -3,7 +3,7 @@ import copy
 
 
 def xml2dict(xml_file, xgb_config, rf_config, pca_config,
-              candle_config, cw_inf_config, bim_config, fgsm_config):
+             candle_config, cw_inf_config, bim_config, fgsm_config):
     """Return XML file as a Python dictionary.
     
     Keyword arguments:

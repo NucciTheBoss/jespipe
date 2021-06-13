@@ -16,6 +16,7 @@ CONFIG_FILE = ".config.json"
    are completed. **Will use 8 nodes on Ursula but I don't want
    to kill my computer during my initial development**"""
 if rank == 0:
+    # Staging: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
     from utils.workerops import greenlight as gl
     from utils.macro import xml2dict as x2d
@@ -49,9 +50,28 @@ if rank == 0:
         gl.killmsg(comm, size, True)
         raise(ValueError("Specified macro file not in XML format."))
     
-    d = x2d.xml2dict(macro_file, XGBOOST, RANDOM_FOREST, PCA, CANDLESTICK,
-                     CW_INF, BIM, FGSM)
-    print(d)
+    # Convert macro XML file to dictionary to begin staging for the pipeline
+    job_control = x2d.xml2dict(macro_file, XGBOOST, RANDOM_FOREST, PCA, CANDLESTICK,
+                               CW_INF, BIM, FGSM)
+
+    # Split job control dictionary into its three parts: train, attack, cleanup
+    train_control = job_control["train"] if "train" in job_control else None
+    attack_control = job_control["attack"] if "attack" in job_control else None
+    clean_control = job_control["clean"] if "clean" in job_control else None
+
+    # Begin execution the stages for the pipeline
+    # Train: launch training stage of the pipeline
+    if train_control is not None:
+        pass
+
+    # Attack: launch attack stage of the pipeline
+    if attack_control is not None:
+        pass
+
+    # Clean: launch cleaning stage of the pipeline
+    if clean_control is not None:
+        pass 
+
     gl.killmsg(comm, size, False)
     print("All done!")
 
