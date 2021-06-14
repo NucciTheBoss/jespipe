@@ -20,6 +20,7 @@ if rank == 0:
     # Imports only necessary for manager node
     from utils.workerops import greenlight as gl
     from utils.macro import xml2dict as x2d
+    from utils.macro.unwrap import unwrap_train, unwrap_attack
 
     # Read in config to get default configurations file
     fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
@@ -62,15 +63,18 @@ if rank == 0:
     # Begin execution the stages for the pipeline
     # Train: launch training stage of the pipeline
     if train_control is not None:
+        train_macro_list = unwrap_train(train_control)
         pass
 
     # Attack: launch attack stage of the pipeline
     if attack_control is not None:
+        attack_macro_list = unwrap_attack(attack_control)
         pass
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
-        pass 
+        # TODO: Create method for generating clean_macro_list
+        pass
 
     gl.killmsg(comm, size, False)
     print("All done!")
@@ -80,33 +84,46 @@ elif rank == 1:
     if greenlight != 1:
         exit(127)
 
-    else:
-        print("Worker #1 is ready to go!")
+    print("Worker #1 is ready to go!")
 
 elif rank == 2:
     greenlight = comm.recv(source=0, tag=2)
     if greenlight != 1:
         exit(127)
 
-    else:
-        print("Worker #2 is ready to go!")
+    print("Worker #2 is ready to go!")
 
 elif rank == 3:
     greenlight = comm.recv(source=0, tag=3)
     if greenlight != 1:
         exit(127)
 
-    else:
-        print("Worker #3 is ready to go!")
+    print("Worker #3 is ready to go!")
 
 elif rank == 4:
-    pass
+    greenlight = comm.recv(source=0, tag=4)
+    if greenlight != 1:
+        exit(127)
+
+    print("Worker #4 is ready to go!")
 
 elif rank == 5:
-    pass
+    greenlight = comm.recv(source=0, tag=5)
+    if greenlight != 1:
+        exit(127)
+
+    print("Worker #5 is ready to go!")
 
 elif rank == 6:
-    pass
+    greenlight = comm.recv(source=0, tag=6)
+    if greenlight != 1:
+        exit(127)
+
+    print("Worker #6 is ready to go!")
 
 elif rank == 7:
-    pass
+    greenlight = comm.recv(source=0, tag=7)
+    if greenlight != 1:
+        exit(127)
+
+    print("Worker #7 is ready to go!")

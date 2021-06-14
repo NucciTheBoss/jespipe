@@ -1,16 +1,59 @@
+import copy
+
+
 def unwrap_train(train_dict):
     """Convert train job control dictionary to workable tuple.
     
     Keyword arguments:
     train_dict -- train job control dictionary to convert to workable tuple."""
     # Create empty list that will eventually be returned to main.py
-    l = list()
+    root = list()
 
     # Split train_dict up by the stored datasets and loop over each dataset
     dataset_list = list(train_dict.items())
     for dataset in dataset_list:
-        # TODO: Write technique for unwrapping dictionaries by dataset.
-        pass
+        # Grab dataset name from top-level tuple and add to root tuple
+        dataset_name = (dataset[0],)
+
+        # Grab dictionary in index position 1 in tmp_level_1
+        # and add path key -> value to root tuple
+        # Use deepcopy to prevent any reference issues
+        tmp_dict_level_1 = copy.deepcopy(dataset[1])
+        dataset_path = (tmp_dict_level_1["path"],)
+
+        # Delete path key -> value so only models are left behind
+        try:
+            del tmp_dict_level_1["path"]
+
+        except KeyError:
+            continue
+
+        # Loop over each model(s) in the dictionary
+        for model in tmp_dict_level_1:
+            root_tuple = dataset_name + dataset_path
+            root_tuple += (model,)
+
+            # Create dictionary containing the datamanips for model
+            # and loop over each of the parameters
+            tmp_dict_level_2 = tmp_dict_level_1[model]
+
+            # Define list that all manips can be added to before
+            # updating root list
+            manip_list = list()
+            for manip_tech in tmp_dict_level_2:
+                manip_tuple = (manip_tech,)
+                tmp_dict_level_3 = tmp_dict_level_2[manip_tech]
+
+                # Convert tmp_dict_level_3 to a list and
+                # append to manip_list
+                tmp_submanip_list = list(tmp_dict_level_3.items())
+                manip_tuple += (tmp_submanip_list,)
+                manip_list.append(manip_tuple)
+
+            root_tuple += (manip_list,)
+            root.append(root_tuple)
+
+    return root
 
 
 def unwrap_attack(attack_dict):
@@ -18,7 +61,34 @@ def unwrap_attack(attack_dict):
     
     Keyword arguments:
     attack_dict -- attack job control dictionary to convert to workable tuple."""
-    pass
+    # Create empty list that will eventually be returned to main.py
+    root = list()
+
+    # Split attack_dict up into the stored datasets and loop over each dataset
+    dataset_list = list(attack_dict.items())
+    for dataset in dataset_list:
+        # Grab dataset name from top-level tuple and add to root tuple
+        dataset_name = (dataset[0],)
+
+        # Grab dictionary in index position 1 in tmp_level_1
+        # and add path key -> value to root tuple
+        # Use deepcopy to prevent any reference issues
+        tmp_dict_level_1 = copy.deepcopy(dataset[1])
+        dataset_path = (tmp_dict_level_1["path"],)
+
+        # Delete path key -> value so only attacks are left behind
+        try:
+            del tmp_dict_level_1["path"]
+
+        except KeyError:
+            continue
+
+        # Convert remainder of tmp_dict_level_1 to a list
+        attack_list = list(tmp_dict_level_1.items())
+        root_tuple = dataset_name + dataset_path + (attack_list,)
+        root.append(root_tuple)
+
+    return root
 
 
 # TODO: Can write this function once I discover what Sheila wants me to do with clean stage
