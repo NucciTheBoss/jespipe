@@ -1,4 +1,4 @@
-def killmsg(communicator ,comm_size, yes=False):
+def killmsg(communicator, comm_size, yes=False):
         """Kill/Green-Light all workers. Send 1 to greenlight workers to continue.
         Send 0 to kill workers. Prevents blocking if terminating mpi program.
         
