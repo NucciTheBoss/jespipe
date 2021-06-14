@@ -88,8 +88,21 @@ def slice(directive_list, mpi_size):
     return root
 
 
-def delegate():
+def delegate(communicator, comm_size, sliced_directives):
     """Delegate out a sliced directive list to how many workers are available.
     
-    Keyword arguments:"""
-    pass
+    Keyword arguments:
+    communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
+    comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+    sliced_directives -- sliced directive list to send to workers."""
+    # Define node rank in order to send messages out
+    node_rank = [i+1 for i in range(comm_size-1)]
+
+    # Send slices out to the workers
+    node_iter = 0
+    for slice in sliced_directives:
+        communicator.send(slice, dest=node_rank[node_iter], tag=node_rank[node_iter])
+        node_iter += 1
+
+    # Send node_rank back to main.py so it can track task completion
+    return node_rank

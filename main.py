@@ -76,6 +76,15 @@ if rank == 0:
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
+        # Create directives for the worker nodes
+        train_directive_list = scat.generate_train(train_macro_list)
+        sliced_directive_list = scat.slice(train_directive_list, size)
+        print(len(sliced_directive_list))
+
+        # Send greenlight to workers and then follow up with tasks
+        gl.killmsg(comm, size, False)
+        node_rank = scat.delegate(comm, size, sliced_directive_list)
+
     # Attack: launch attack stage of the pipeline
     if attack_control is not None:
         attack_macro_list = unwrap_attack(attack_control)
@@ -112,6 +121,8 @@ elif rank == 1:
         exit(127)
 
     print("Worker #1 is ready to go!")
+    task_list = comm.recv(source=0, tag=1)
+    print("My task is", task_list)
 
 elif rank == 2:
     greenlight = comm.recv(source=0, tag=2)
@@ -119,6 +130,8 @@ elif rank == 2:
         exit(127)
 
     print("Worker #2 is ready to go!")
+    task_list = comm.recv(source=0, tag=2)
+    print("My task is", task_list)
 
 elif rank == 3:
     greenlight = comm.recv(source=0, tag=3)
@@ -126,6 +139,8 @@ elif rank == 3:
         exit(127)
 
     print("Worker #3 is ready to go!")
+    task_list = comm.recv(source=0, tag=3)
+    print("My task is", task_list)
 
 elif rank == 4:
     greenlight = comm.recv(source=0, tag=4)
@@ -133,6 +148,8 @@ elif rank == 4:
         exit(127)
 
     print("Worker #4 is ready to go!")
+    task_list = comm.recv(source=0, tag=4)
+    print("My task is", task_list)
 
 elif rank == 5:
     greenlight = comm.recv(source=0, tag=5)
@@ -140,6 +157,8 @@ elif rank == 5:
         exit(127)
 
     print("Worker #5 is ready to go!")
+    task_list = comm.recv(source=0, tag=5)
+    print("My task is", task_list)
 
 elif rank == 6:
     greenlight = comm.recv(source=0, tag=6)
@@ -147,6 +166,8 @@ elif rank == 6:
         exit(127)
 
     print("Worker #6 is ready to go!")
+    task_list = comm.recv(source=0, tag=6)
+    print("My task is", task_list)
 
 elif rank == 7:
     greenlight = comm.recv(source=0, tag=7)
@@ -154,3 +175,5 @@ elif rank == 7:
         exit(127)
 
     print("Worker #7 is ready to go!")
+    task_list = comm.recv(source=0, tag=7)
+    print("My task is", task_list)
