@@ -1,7 +1,9 @@
+from utils.workeradmin.greenlight import killmsg
 from mpi4py import MPI
 import json
 import sys
 import re
+import os
 
 
 # Global values to be shared across all nodes
@@ -62,14 +64,39 @@ if rank == 0:
         train_macro_list = unwrap_train(train_control)
 
         # Loop through train_macro_list, creating directories for
-        # storging models for each dataset, as well as verifying
+        # storing models for each dataset, as well as verifying
         # that each specified dataset does exists
-        pass
+        for macro in train_macro_list:
+            # Check that dataset exists. If not, raise file not found error
+            if os.path.isfile(macro[1]) is False:
+                gl.killmsg(comm, size, True)
+                raise(FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path."))
+
+            # If dataset file is verified to exist, create necessary directories
+            # Create data/$dataset_name/models <- where trained models are stored
+            os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
     # Attack: launch attack stage of the pipeline
     if attack_control is not None:
         attack_macro_list = unwrap_attack(attack_control)
-        pass
+
+        # Loop through attack_macro_list, creating directories for
+        # storing adversarial examples for each dataset, as well as verifying
+        # that each specified dataset does exists. Also, checks to see if the
+        # models exist as well
+        for macro in attack_macro_list:
+            # Check that dataset exists. If not, raise file not found error
+            if os.path.isfile(macro[1]) is False:
+                gl.killmsg(comm, size, True)
+                raise(FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path."))
+
+            # Check if models exist. If not, raise file not found error
+            if os.path.exists("data/" + macro[0] + "/models") is False:
+                gl.killmsg(comm, size, True)
+                raise(FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0])))
+
+            # Once all checks are good, create directory for storing adversarial examples
+            os.makedirs("data/" + macro[0] + "/adver_examples")
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
