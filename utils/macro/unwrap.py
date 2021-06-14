@@ -104,8 +104,9 @@ def unwrap_attack(attack_dict):
 
         # Convert remainder of tmp_dict_level_1 to a list
         attack_list = list(tmp_dict_level_1.items())
-        for attack in attack_list:
-            if attack[1] is None:
+        tmp_list = copy.deepcopy(attack_list)
+        for attack in tmp_list:
+            if None in attack:
                 attack_list.remove(attack)
 
             else:

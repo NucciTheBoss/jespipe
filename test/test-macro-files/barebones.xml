@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <train>
+        <dataset file="some/path/to/a/test.csv">
+            <model>
+                <name>barebones_model</name>
+                <parameters>
+                    <squence_length>12</squence_length>
+                    <batch_size>256</batch_size>
+                    <epochs>50</epochs>
+                    <validation_split>0.1</validation_split>
+                    <verbose>1</verbose>
+                    <learning_rate>0.001</learning_rate>
+                </parameters>
+            </model>
+        </dataset>
+    </train>
+    <attack>
+        <dataset file="some/path/to/a/test.csv"></dataset>
+    </attack>
+</simu>

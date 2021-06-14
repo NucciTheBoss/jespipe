@@ -79,7 +79,6 @@ if rank == 0:
         # Create directives for the worker nodes
         train_directive_list = scat.generate_train(train_macro_list)
         sliced_directive_list = scat.slice(train_directive_list, size)
-        print(len(sliced_directive_list))
 
         # Send greenlight to workers and then follow up with tasks
         gl.killmsg(comm, size, False)
