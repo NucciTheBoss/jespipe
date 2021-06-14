@@ -11,14 +11,10 @@ rank = comm.Get_rank()
 CONFIG_FILE = ".config.json"
 
 
-"""Bare bones skeletal structure of what the MPI application will
-   look like. Will flesh out more as more pieces of the pipeline
-   are completed. **Will use 8 nodes on Ursula but I don't want
-   to kill my computer during my initial development**"""
 if rank == 0:
     # Staging: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
-    from utils.workerops import greenlight as gl
+    from utils.workeradmin import greenlight as gl
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
 
@@ -64,6 +60,10 @@ if rank == 0:
     # Train: launch training stage of the pipeline
     if train_control is not None:
         train_macro_list = unwrap_train(train_control)
+
+        # Loop through train_macro_list, creating directories for
+        # storging models for each dataset, as well as verifying
+        # that each specified dataset does exists
         pass
 
     # Attack: launch attack stage of the pipeline
