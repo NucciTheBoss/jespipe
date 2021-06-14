@@ -1,4 +1,3 @@
-from utils.workeradmin.greenlight import killmsg
 from mpi4py import MPI
 import json
 import sys

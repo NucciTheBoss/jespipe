@@ -19,15 +19,20 @@ def generate_train(macro_list):
 
         # Grab manip list and iterate over each manipulation
         manip_type_list = directive[4]
-        for manip_type in manip_type_list:
-            # Grab manipulation type: eg. xgboost, pca, randomforest, candlestick.
-            manip_type_name = manip_type[0]
 
-            # Grab list of manip names and parameters
-            manip_list = manip_type[1]
-            for manip in manip_list:
-                # Create directive tuple and add to root list
-                root.append((dataset_name, dataset_path, model_name, parameters, manip_type_name, manip[0], manip[1]))
+        if manip_type_list is not None:
+            for manip_type in manip_type_list:
+                # Grab manipulation type: eg. xgboost, pca, randomforest, candlestick.
+                manip_type_name = manip_type[0]
+
+                # Grab list of manip names and parameters
+                manip_list = manip_type[1]
+                for manip in manip_list:
+                    # Create directive tuple and add to root list
+                    root.append((dataset_name, dataset_path, model_name, parameters, manip_type_name, manip[0], manip[1]))
+
+        else:
+            root.append((dataset_name, dataset_path, model_name, parameters, None, None, None))
 
     return root
 
@@ -48,15 +53,22 @@ def generate_attack(macro_list):
 
         # Grab attack list and iterate over each attack
         attack_type_list = directive[2]
-        for attack_type in attack_type_list:
-            # Grab attack type: eg. CW_inf, BIM, FGSM
-            attack_type_name = attack_type[0]
 
-            # Grab list of attack names and parameters
-            attack_list = attack_type[1]
-            for attack in attack_list:
-                # Create directive tuple and add to root list
-                root.append((dataset_name, dataset_path, attack_type_name, attack[0], attack[1]))
+        if attack_type_list is not None:
+            for attack_type in attack_type_list:
+                # Grab attack type: eg. CW_inf, BIM, FGSM
+                attack_type_name = attack_type[0]
+
+                # Grab list of attack names and parameters
+                attack_list = attack_type[1]
+                for attack in attack_list:
+                    # Create directive tuple and add to root list
+                    root.append((dataset_name, dataset_path, attack_type_name, attack[0], attack[1]))
+
+        else:
+             root.append((dataset_name, dataset_path, None, None, None))
+
+    return root
 
 
 def slice(directive_list, mpi_size):

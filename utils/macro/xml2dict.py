@@ -89,6 +89,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                             # Add final tmp_dict to root
                             d["train"][data_name][model_name.text]["xgboost"][xgb["tag"]] = tmp_dict
 
+                    else:
+                        # Set to none if xgboost is not present in macro file
+                        d["train"][data_name][model_name.text]["xgboost"] = None
+
                     if ranforestmanip != []:
                         d["train"][data_name][model_name.text]["randomforest"] = dict()
                         for rf in ranforestmanip:
@@ -98,6 +102,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                             # Mere mention of Random Forest will store placeholder value of 1.
                             tmp_dict.update({"placeholder": 1})
                             d["train"][data_name][model_name.text]["randomforest"][rf["tag"]] = tmp_dict
+
+                    else:
+                        # Set to none if randomforest is not present in macro file
+                        d["train"][data_name][model_name.text]["randomforest"] = None
 
                     if pcamanip != []:
                         d["train"][data_name][model_name.text]["pca"] = dict()
@@ -115,6 +123,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                             # Add final tmp_dict to root
                             d["train"][data_name][model_name.text]["pca"][pca["tag"]] = tmp_dict
 
+                    else:
+                        # Set to none if pca is not present in the macro XML file
+                        d["train"][data_name][model_name.text]["pca"] = None
+
                     if candlemanip != []:
                         d["train"][data_name][model_name.text]["candlestick"] = dict()
                         for cand in candlemanip:
@@ -129,6 +141,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                                     tmp_dict.update({param: feat})
                                 
                             d["train"][data_name][model_name.text]["candlestick"][cand["tag"]] = tmp_dict
+
+                    else:
+                        # Set to none if candlestick is not present in macro XML file
+                        d["train"][data_name][model_name.text]["candlestick"] = None
                                 
 
     # Parse attack tag; skip if not specified in XML file
@@ -161,6 +177,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
 
                     d["attack"][data_name]["CW_inf"][cw_inf["tag"]] = tmp_dict                    
 
+            else:
+                # Set to none if CW_inf is not mentioned in XML macro file
+                d["attack"][data_name]["CW_inf"] = None
+
             if bim_attacks != []:
                 # Add BIM branch to root dictionary
                 d["attack"][data_name]["BIM"] = dict()
@@ -176,6 +196,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
 
                     d["attack"][data_name]["BIM"][bim["tag"]] = tmp_dict
 
+            else:
+                # Set to none if BIM is not mentioned in macro XML file
+                d["attack"][data_name]["BIM"] = None
+
             if fgsm_attacks != []:
                 # Add FGSM branch to root dictionary
                 d["attack"][data_name]["FGSM"] = dict()
@@ -190,6 +214,10 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                             tmp_dict.update({param: feat})
 
                     d["attack"][data_name]["FGSM"][fgsm["tag"]] = tmp_dict
+
+            else:
+                # Set to none if FGSM is not mentioned in the macro XML file
+                d["attack"][data_name]["FGSM"] = None
 
     # TODO: Figure out from Sheila next week what she wants me to do with this section
     # # Parse clean tag; skip if not specified in XML file

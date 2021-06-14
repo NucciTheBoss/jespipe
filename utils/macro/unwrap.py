@@ -51,16 +51,25 @@ def unwrap_train(train_dict):
             # updating root list
             manip_list = list()
             for manip_tech in tmp_dict_level_2:
-                manip_tuple = (manip_tech,)
-                tmp_dict_level_3 = tmp_dict_level_2[manip_tech]
+                if tmp_dict_level_2[manip_tech] is not None:
+                    manip_tuple = (manip_tech,)
+                    tmp_dict_level_3 = tmp_dict_level_2[manip_tech]
 
-                # Convert tmp_dict_level_3 to a list and
-                # append to manip_list
-                tmp_submanip_list = list(tmp_dict_level_3.items())
-                manip_tuple += (tmp_submanip_list,)
-                manip_list.append(manip_tuple)
+                    # Convert tmp_dict_level_3 to a list and
+                    # append to manip_list
+                    tmp_submanip_list = list(tmp_dict_level_3.items())
+                    manip_tuple += (tmp_submanip_list,)
+                    manip_list.append(manip_tuple)
 
-            root_tuple += (manip_list,)
+                else:
+                    continue
+
+            if manip_list != []:
+                root_tuple += (manip_list,)
+
+            else:
+                root_tuple += (None,)
+
             root.append(root_tuple)
 
     return root
@@ -95,7 +104,19 @@ def unwrap_attack(attack_dict):
 
         # Convert remainder of tmp_dict_level_1 to a list
         attack_list = list(tmp_dict_level_1.items())
-        root_tuple = dataset_name + dataset_path + (attack_list,)
+        for attack in attack_list:
+            if attack[1] is None:
+                attack_list.remove(attack)
+
+            else:
+                continue
+
+        if attack_list != []:    
+            root_tuple = dataset_name + dataset_path + (attack_list,)
+
+        else:
+            root_tuple = dataset_name + dataset_path + (None,)
+
         root.append(root_tuple)
 
     return root
