@@ -19,6 +19,7 @@ if rank == 0:
     from utils.workeradmin import greenlight as gl
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
+    from utils.workerops import scattershot as scat
 
     # Read in config to get default configurations file
     fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
