@@ -34,8 +34,18 @@ def unwrap_train(train_dict):
             root_tuple += (model,)
 
             # Create dictionary containing the datamanips for model
-            # and loop over each of the parameters
-            tmp_dict_level_2 = tmp_dict_level_1[model]
+            # and loop over each of the manips
+            tmp_dict_level_2 = copy.deepcopy(tmp_dict_level_1[model])
+
+            # Pull out and delete paremeters key
+            param_dict = tmp_dict_level_2["parameters"]
+            root_tuple += (param_dict,)
+
+            try:
+                del tmp_dict_level_2["parameters"]
+
+            except KeyError:
+                continue
 
             # Define list that all manips can be added to before
             # updating root list

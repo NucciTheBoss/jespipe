@@ -18,6 +18,16 @@
             <model>
                 <!-- The unique name of the model. -->
                 <name>my_model_name</name>
+
+                <!-- Specify parameters for each of the models -->
+                <parameters>
+                    <squence_length>12</squence_length>
+                    <batch_size>256</batch_size>
+                    <epochs>50</epochs>
+                    <validation_split>0.1</validation_split>
+                    <verbose>1</verbose>
+                    <learning_rate>0.001</learning_rate>
+                </parameters>
                 
                 <!-- XGBoost feature selection. Pass value of n_features argument as 
                      child text node. -->

@@ -3,7 +3,7 @@ import copy
 
 
 def xml2dict(xml_file, xgb_config, rf_config, pca_config,
-             candle_config, cw_inf_config, bim_config, fgsm_config):
+             candle_config, cw_inf_config, bim_config, fgsm_config, rnn_config):
     """Return XML file as a Python dictionary.
     
     Keyword arguments:
@@ -14,7 +14,8 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
     candle_config -- configuration dictionary for Candlestick trend extraction.
     cw_inf_config -- configuration dictionary for CW_inf attack.
     bim_config -- configuration dictionary for BIM attack.
-    fgsm_config -- configuration dictionary for FGSM attack."""
+    fgsm_config -- configuration dictionary for FGSM attack.
+    rnn_config -- configuration dictionary for RNN algorithm."""
     fin = open(xml_file, "rt"); xml_data = fin.read(); fin.close()
     soup = BeautifulSoup(xml_data, "xml")
 
@@ -42,6 +43,29 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                 for model_datum in model_data:
                     model_name = model_datum.find("name")
                     d["train"][data_name][model_name.text] = dict()
+
+                    # Pull user specified model parameters
+                    model_params = model_datum.find_all("parameters")
+
+                    if model_params != []:
+                        d["train"][data_name][model_name.text]["parameters"] = dict()
+                        for param_set in model_params:
+                            # Create a deepcopy of the default rnn_config dictionary
+                            tmp_dict = copy.deepcopy(rnn_config)
+
+                            for param in rnn_config:
+                                # Pull parameters tag in XML file
+                                feat = param_set.find(param)
+                                if feat is not None:
+                                    feat = feat.text
+                                    tmp_dict.update({param: feat})
+
+                            d["train"][data_name][model_name.text]["parameters"] = tmp_dict
+
+                    else:
+                        # Still need to add parameters to the job_control dictionary
+                        # regradless of mention in XML macro file
+                        d["train"][data_name][model_name.text]["parameters"] = rnn_config
 
                     # Pull all user specified data manipulations
                     xgbmanip = model_datum.find_all("xgboost")

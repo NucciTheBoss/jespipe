@@ -52,7 +52,7 @@ if rank == 0:
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
     job_control = x2d.xml2dict(macro_file, XGBOOST, RANDOM_FOREST, PCA, CANDLESTICK,
-                               CW_INF, BIM, FGSM)
+                               CW_INF, BIM, FGSM, RNN_PARAM)
 
     # Split job control dictionary into its three parts: train, attack, cleanup
     train_control = job_control["train"] if "train" in job_control else None
