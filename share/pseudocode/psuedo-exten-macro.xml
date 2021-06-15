@@ -5,10 +5,11 @@
             <!-- Mention of the plugin tag tells the pipeline to pull in a user-defined build function.
                  This will allow users to write their own custom build code rather than having to use built-in 
                  model build code that comes prepackaged with the pipeline. -->
+            <!-- If the plugin is not defined, pull in built-in model build method. -->
             <model plugin="/path/to/my/model/build_code.py">
                 <name>my_model_name</name>
 
-                <!-- Algorithm pulls in a specific built-in model build function from the pipeline -->
+                <!-- Algorithm pulls in a specific built-in model parameters from config.json. -->
                 <algorithm>LSTM</algorithm>
 
                 <parameters>
