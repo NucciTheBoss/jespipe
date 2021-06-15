@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <train>
+        <dataset file="/path/to/some/file.csv">
+            <!-- Mention of the plugin tag tells the pipeline to pull in a user-defined build function.
+                 This will allow users to write their own custom build code rather than having to use built-in 
+                 model build code that comes prepackaged with the pipeline. -->
+            <model plugin="/path/to/my/model/build_code.py">
+                <name>my_model_name</name>
+
+                <!-- Algorithm pulls in a specific built-in model build function from the pipeline -->
+                <algorithm>LSTM</algorithm>
+
+                <parameters>
+                    <squence_length>12</squence_length>
+                    <batch_size>256</batch_size>
+                    <epochs>50</epochs>
+                    <validation_split>0.1</validation_split>
+                    <verbose>1</verbose>
+                    <learning_rate>0.001</learning_rate>
+                </parameters>
+                
+                <xgboost tag="xgb1">
+                    <n_features>11</n_features>
+                </xgboost>
+
+                <randomforest tag="rf1"></randomforest>
+                
+                <pca tag="pca1">
+                    <n_features>11</n_features>
+                </pca>
+
+                <candlestick tag="cand1">
+                    <time_interval>20</time_interval>
+                </candlestick>
+            </model>
+        </dataset>
+
+    </train>
+    <attack>
+        <dataset file="/path/to/some/file.csv">
+            <cw_inf tag="cw_inf1">
+                <confidence>0.0</confidence>
+                <targeted>0</targeted>
+                <learning_rate>0.01</learning_rate>
+                <max_iter>10</max_iter>
+                <max_halving>5</max_halving>
+                <max_doubling>5</max_doubling>
+                <max_eps>0.3</max_eps>
+                <eps_step>0.1</eps_step>
+                <batch_size>128</batch_size>
+                <verbose>1</verbose>
+            </cw_inf>
+
+            <bim tag="bim1">
+                <max_eps>0.3</max_eps>
+                <eps_step>0.1</eps_step>
+                <targeted>0</targeted>
+                <batch_size>32</batch_size>
+                <verbose>1</verbose>
+            </bim>
+
+            <fgsm tag="fgsm1">
+                <norm>inf</norm>
+                <max_eps>0.3</max_eps>
+                <eps_step>0.1</eps_step>
+                <targeted>0</targeted>
+                <num_random_int>0</num_random_int>
+                <batch_size>32</batch_size>
+                <minimal>0</minimal>
+            </fgsm>
+        </dataset>
+    </attack>
+ 
+    <clean>
+    </clean>
+</simu>
