@@ -1,6 +1,6 @@
 {
     "algorithms": {
-        "RNN": {
+        "LSTM": {
             "squence_length": 12,
             "batch_size": 256,
             "epochs": 50,
@@ -8,6 +8,10 @@
             "verbose": 1,
             "learning_rate": 0.001
         }
+    },
+
+    "plugins": {
+        "LSTM": "/path/to/LSTM/model.py"
     },
 
     "datamanips": {

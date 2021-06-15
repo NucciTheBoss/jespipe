@@ -24,16 +24,6 @@ if rank == 0:
     fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
     config = json.loads(config)
 
-    # Parse in data from the config file
-    RNN_PARAM = config["algorithms"]["RNN"]
-    XGBOOST = config["datamanips"]["xgboost"]
-    RANDOM_FOREST = config["datamanips"]["randomforest"]
-    PCA = config["datamanips"]["pca"]
-    CANDLESTICK = config["datamanips"]["candlestick"]
-    CW_INF = config["attacks"]["CW_inf"]
-    BIM = config["attacks"]["BIM"]
-    FGSM = config["attacks"]["FGSM"]
-
     # Read in marco XML file
     if len(sys.argv) != 2:
         gl.killmsg(comm, size, True)
@@ -50,8 +40,12 @@ if rank == 0:
         raise(ValueError("Specified macro file not in XML format."))
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
-    job_control = x2d.xml2dict(macro_file, XGBOOST, RANDOM_FOREST, PCA, CANDLESTICK,
-                               CW_INF, BIM, FGSM, RNN_PARAM)
+    try:
+        job_control = x2d.xml2dict(macro_file, config)
+
+    except:
+        gl.killmsg(comm, size, True)
+        raise RuntimeError("A fatal was encountered while parsing the XML file.")
 
     # Split job control dictionary into its three parts: train, attack, cleanup
     train_control = job_control["train"] if "train" in job_control else None
