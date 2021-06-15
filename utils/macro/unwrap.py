@@ -5,7 +5,10 @@ def unwrap_train(train_dict):
     """Convert train job control dictionary to workable tuple.
     
     Keyword arguments:
-    train_dict -- train job control dictionary to convert to workable tuple."""
+    train_dict -- train job control dictionary to convert to workable tuple.
+    
+    Returned format:
+    (dataset_name, dataset_path, model_name, algorithm, parameters, plugin, [(manip, {params: value})]"""
     # Create empty list that will eventually be returned to main.py
     root = list()
 
@@ -37,12 +40,16 @@ def unwrap_train(train_dict):
             # and loop over each of the manips
             tmp_dict_level_2 = copy.deepcopy(tmp_dict_level_1[model])
 
-            # Pull out and delete paremeters key
+            # Pull out and delete algorithm, paremeters, and plugin key
+            algorithm = tmp_dict_level_2["algorithm"]
             param_dict = tmp_dict_level_2["parameters"]
-            root_tuple += (param_dict,)
+            plugin = tmp_dict_level_2["plugin"]
+            root_tuple += (algorithm, param_dict, plugin)
 
             try:
+                del tmp_dict_level_2["algorithm"]
                 del tmp_dict_level_2["parameters"]
+                del tmp_dict_level_2["plugin"]
 
             except KeyError:
                 continue

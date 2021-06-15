@@ -2,20 +2,12 @@ from bs4 import BeautifulSoup
 import copy
 
 
-def xml2dict(xml_file, xgb_config, rf_config, pca_config,
-             candle_config, cw_inf_config, bim_config, fgsm_config, rnn_config):
+def xml2dict(xml_file, config_file):
     """Return XML file as a Python dictionary.
     
     Keyword arguments:
     xml_file -- marco XML file to convert to a Python dictionary.
-    xgb_config -- configuration dictionary for XGBoost feature selection.
-    rf_config -- configuration dictionary for Random Forest feature selection.
-    pca_config -- configuration dictionary for PCA dimensionality reduction.
-    candle_config -- configuration dictionary for Candlestick trend extraction.
-    cw_inf_config -- configuration dictionary for CW_inf attack.
-    bim_config -- configuration dictionary for BIM attack.
-    fgsm_config -- configuration dictionary for FGSM attack.
-    rnn_config -- configuration dictionary for RNN algorithm."""
+    config_file -- global configuration dictionary."""
     fin = open(xml_file, "rt"); xml_data = fin.read(); fin.close()
     soup = BeautifulSoup(xml_data, "xml")
 
@@ -41,8 +33,23 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
             model_data = dataset.find_all("model")
             if model_data != []:
                 for model_datum in model_data:
+                    # Grab model name and add to dictionary
                     model_name = model_datum.find("name")
                     d["train"][data_name][model_name.text] = dict()
+
+                    # Pull the algorithm/architecture for the model
+                    model_arch = model_datum.find("algorithm")
+                    try:
+                        d["train"][data_name][model_name.text].update({"algorithm": model_arch.text})
+                    
+                    except AttributeError:
+                        raise AttributeError("No algorithm specified in macro XML file.")
+
+                    try:
+                        arch_config = config_file["algorithms"][model_arch.text]
+
+                    except KeyError:
+                        raise KeyError("Algorithm {} key not present in .config.json. Please add default architecture/algorithm parameters to .config.json".format(model_arch.text))
 
                     # Pull user specified model parameters
                     model_params = model_datum.find_all("parameters")
@@ -51,9 +58,9 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                         d["train"][data_name][model_name.text]["parameters"] = dict()
                         for param_set in model_params:
                             # Create a deepcopy of the default rnn_config dictionary
-                            tmp_dict = copy.deepcopy(rnn_config)
+                            tmp_dict = copy.deepcopy(arch_config)
 
-                            for param in rnn_config:
+                            for param in arch_config:
                                 # Pull parameters tag in XML file
                                 feat = param_set.find(param)
                                 if feat is not None:
@@ -65,8 +72,19 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                     else:
                         # Still need to add parameters to the job_control dictionary
                         # regradless of mention in XML macro file
-                        d["train"][data_name][model_name.text]["parameters"] = rnn_config
+                        d["train"][data_name][model_name.text]["parameters"] = arch_config
 
+                    # Add the plugin that the user will be utilizing
+                    try:
+                        d["train"][data_name][model_name.text].update({"plugin": model_datum["plugin"]})
+
+                    except KeyError:
+                        try:
+                            d["train"][data_name][model_name.text].update({"plugin": config_file["plugins"][model_arch.text]})
+
+                        except KeyError:
+                            raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.")
+                    
                     # Pull all user specified data manipulations
                     xgbmanip = model_datum.find_all("xgboost")
                     ranforestmanip = model_datum.find_all("randomforest")
@@ -74,6 +92,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                     candlemanip = model_datum.find_all("candlestick")
 
                     if xgbmanip != []:
+                        # Pull xgb configuration from config dictionary
+                        try:
+                            xgb_config = config_file["datamanips"]["xgboost"]
+
+                        except KeyError:
+                            raise KeyError("Datamanip xgboost key not present in .config.json. Please add default xgboost parameters to .config.json")
+
                         d["train"][data_name][model_name.text]["xgboost"] = dict()
                         for xgb in xgbmanip:
                             # Create deepcopy of default xgb_config dictionary
@@ -94,6 +119,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                         d["train"][data_name][model_name.text]["xgboost"] = None
 
                     if ranforestmanip != []:
+                        # Pull randomforest configuration from config dictionary
+                        try:
+                            rf_config = config_file["datamanips"]["randomforest"]
+
+                        except KeyError:
+                            raise KeyError("Datamanip randomforest key not present in .config.json. Please add default randomforest parameters to .config.json")
+
                         d["train"][data_name][model_name.text]["randomforest"] = dict()
                         for rf in ranforestmanip:
                             # Create deepcopy of default rf_config dictionary
@@ -108,6 +140,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                         d["train"][data_name][model_name.text]["randomforest"] = None
 
                     if pcamanip != []:
+                        # Pull pca config from config dictionary
+                        try:
+                            pca_config = config_file["datamanips"]["pca"]
+
+                        except KeyError:
+                            raise KeyError("Datamanip pca key not present in .config.json. Please add default pca parameters to .config.json")
+
                         d["train"][data_name][model_name.text]["pca"] = dict()
                         for pca in pcamanip:
                             # Create deepcopy of default pca_config dictionary
@@ -128,6 +167,12 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                         d["train"][data_name][model_name.text]["pca"] = None
 
                     if candlemanip != []:
+                        try:
+                            candle_config = config_file["datamanips"]["candlestick"]
+
+                        except KeyError:
+                            raise KeyError("Datamanip candlestick key not present in .config.json. Please add default candlestick parameters to .config.json")
+                        
                         d["train"][data_name][model_name.text]["candlestick"] = dict()
                         for cand in candlemanip:
                             # Create deepcopy of default candle_config dictionary
@@ -163,6 +208,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
             fgsm_attacks = dataset.find_all("fgsm")
 
             if cw_inf_attacks != []:
+                # Pull CW_inf from config dictionary
+                try:
+                    cw_inf_config = config_file["attacks"]["CW_inf"]
+
+                except KeyError:
+                    raise KeyError("Attack CW_inf key not present in .config.json. Please add default CW_inf parameters to .config.json")
+
                 # Add CW_inf branch to root dictionary
                 d["attack"][data_name]["CW_inf"] = dict()
                 for cw_inf in cw_inf_attacks:
@@ -182,6 +234,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                 d["attack"][data_name]["CW_inf"] = None
 
             if bim_attacks != []:
+                # Pull BIM from config dictionary
+                try:
+                    bim_config = config_file["attacks"]["BIM"]
+
+                except KeyError:
+                    raise KeyError("Attack BIM key not present in .config.json. Please add default BIM parameters to .config.json")
+
                 # Add BIM branch to root dictionary
                 d["attack"][data_name]["BIM"] = dict()
                 for bim in bim_attacks:
@@ -201,6 +260,13 @@ def xml2dict(xml_file, xgb_config, rf_config, pca_config,
                 d["attack"][data_name]["BIM"] = None
 
             if fgsm_attacks != []:
+                # Pull FGSM from config dictionary
+                try:
+                    fgsm_config = config_file["attacks"]["FGSM"]
+
+                except KeyError:
+                    raise KeyError("Attack FGSM key not present in .config.json. Please add default FGSM parameters to .config.json")
+                
                 # Add FGSM branch to root dictionary
                 d["attack"][data_name]["FGSM"] = dict()
                 for fgsm in fgsm_attacks:

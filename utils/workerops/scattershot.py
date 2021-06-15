@@ -15,10 +15,12 @@ def generate_train(macro_list):
         dataset_name = directive[0]
         dataset_path = directive[1]
         model_name = directive[2]
-        parameters = directive[3]
+        algorithm = directive[3]
+        parameters = directive[4]
+        plugin = directive[5]
 
         # Grab manip list and iterate over each manipulation
-        manip_type_list = directive[4]
+        manip_type_list = directive[6]
 
         if manip_type_list is not None:
             for manip_type in manip_type_list:
@@ -29,10 +31,10 @@ def generate_train(macro_list):
                 manip_list = manip_type[1]
                 for manip in manip_list:
                     # Create directive tuple and add to root list
-                    root.append((dataset_name, dataset_path, model_name, parameters, manip_type_name, manip[0], manip[1]))
+                    root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, manip_type_name, manip[0], manip[1]))
 
         else:
-            root.append((dataset_name, dataset_path, model_name, parameters, None, None, None))
+            root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, None, None, None))
 
     return root
 
