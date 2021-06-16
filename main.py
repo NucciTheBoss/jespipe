@@ -98,7 +98,7 @@ if rank == 0:
                 raise(FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0])))
 
             # Once all checks are good, create directory for storing adversarial examples
-            os.makedirs("data/" + macro[0] + "/adver_examples")
+            os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
