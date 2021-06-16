@@ -5,8 +5,7 @@ def killmsg(communicator, comm_size, yes=False):
         Keyword arguments:
         communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
         comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
-        yes -- kill or do not kill all worker nodes. True: kill all workers. False: do not kill all workers (default: False).
-        """
+        yes -- kill or do not kill all worker nodes. True: kill all workers. False: do not kill all workers (default: False)."""
         node_rank = [i+1 for i in range(comm_size-1)]
         if yes is True:
             msg = [0**1 for j in range(comm_size-1)]
