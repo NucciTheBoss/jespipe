@@ -170,9 +170,6 @@ elif rank == 1:
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
 
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=1)
-
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=1)
 
@@ -211,9 +208,6 @@ elif rank == 2:
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
 
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
-
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=2)
 
@@ -251,9 +245,6 @@ elif rank == 3:
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
-
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
 
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=3)
@@ -334,9 +325,6 @@ elif rank == 5:
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
 
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
-
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=5)
 
@@ -375,9 +363,6 @@ elif rank == 6:
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
 
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
-
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=6)
 
@@ -415,9 +400,6 @@ elif rank == 7:
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
-
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
 
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=7)
