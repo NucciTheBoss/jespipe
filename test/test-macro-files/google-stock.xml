@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <train>
-        <dataset file="test/google_stock_dataset.csv">
+        <dataset file="test/datasets/google-stock/google-clean.csv">
             <model plugin="plugins/LSTM/LSTM.py">
                 <name>google-stock-LSTM</name>
 
@@ -34,7 +34,7 @@
 
     </train>
     <attack>
-        <dataset file="test/google_stock_dataset.csv">
+        <dataset file="test/datasets/google-stock/google-clean.csv">
             <cw_inf tag="cw_inf1">
                 <confidence>0.0</confidence>
                 <targeted>0</targeted>
