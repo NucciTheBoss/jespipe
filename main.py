@@ -1,4 +1,3 @@
-from utils.workeradmin.skip import skip_attack
 from mpi4py import MPI
 import json
 import sys
@@ -6,6 +5,9 @@ import re
 import os
 import time
 import logging
+import pandas as pd
+import numpy as np
+from utils.workerops.preprocessing import preprocessing
 
 
 # Global values to be shared across all nodes
@@ -165,7 +167,22 @@ elif rank == 1:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=1)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=1)
+        
+        # Check if task list sent is empty. If so, return message to the manager
+        if task_list != []:
+            # Loop through each of the tasks and perform necessary data manipulations
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                print(feat, label)
+
+            comm.send(1, dest=0, tag=1)
+
+        else:
+            logging.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=1)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
