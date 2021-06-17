@@ -28,6 +28,14 @@ if rank == 0:
     from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as scat
 
+
+    # Check if we are working in the same directory as main.py.
+    # If not, throw error as that will impact the pipelines ability to run.
+    cwd_contents = [f for f in os.listdir(".") if os.path.isfile(f)]
+    if sys.argv[0] not in cwd_contents:
+        gl.killmsg(comm, size, True)
+        raise OSError("Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
+
     # Read in config to get default configurations file
     fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
     config = json.loads(config)
@@ -70,16 +78,32 @@ if rank == 0:
 
         train_macro_list = unwrap_train(train_control)
 
+        # Loop through train_macro_list and convert relative paths to absolute paths
+        for i in range(0, len(train_macro_list)):
+            # Convert to list in order to change elements
+            dataset = list(train_macro_list[i])
+
+            # Check if path to dataset is absolute
+            if os.path.isabs(dataset[1]) is False:
+                dataset[1] = os.path.abspath(dataset[1])
+
+            # Check if path to plugin is absolute
+            if os.path.isabs(dataset[5]) is False:
+                dataset[5] = os.path.abspath(dataset[5])
+
+            # Convert back to tuple
+            train_macro_list[i] = tuple(dataset)
+
         # Loop through train_macro_list, creating directories for
         # storing models for each dataset, as well as verifying
         # that each specified dataset does exists
         for macro in train_macro_list:
             # Check that dataset exists. If not, raise file not found error
-            if os.path.isfile(macro[1]) is False:
+            if os.path.isfile(macro[1]) is False or os.path.isfile(macro[5]) is False:
                 gl.killmsg(comm, size, True)
-                raise(FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path."))
+                raise FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path.")
 
-            # If dataset file is verified to exist, create necessary directories
+            # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
@@ -89,6 +113,9 @@ if rank == 0:
 
         # Create directory for nodes to log their status if not exist
         os.makedirs("data/.logs", exist_ok=True)
+
+        # Broadcast that everything is good to go for the training stage
+        gl.killmsg(comm, size, False)
 
         # Send greenlight to workers and then follow up with tasks
         node_rank = scat.delegate(comm, size, sliced_directive_list)
@@ -162,7 +189,14 @@ elif rank == 1:
     skip_stage_training = comm.recv(source=0, tag=1)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=1)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=1)
@@ -180,7 +214,7 @@ elif rank == 1:
             comm.send(1, dest=0, tag=1)
 
         else:
-            logging.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
             comm.send(1, dest=0, tag=1)
 
     else:
@@ -214,7 +248,14 @@ elif rank == 2:
     skip_stage_training = comm.recv(source=0, tag=2)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=2)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=2)
@@ -252,7 +293,14 @@ elif rank == 3:
     skip_stage_training = comm.recv(source=0, tag=3)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=3)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=3)
@@ -290,7 +338,14 @@ elif rank == 4:
     skip_stage_training = comm.recv(source=0, tag=4)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=4)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=4)
@@ -331,7 +386,14 @@ elif rank == 5:
     skip_stage_training = comm.recv(source=0, tag=5)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=5)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=5)
@@ -369,7 +431,14 @@ elif rank == 6:
     skip_stage_training = comm.recv(source=0, tag=6)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=6)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=6)
@@ -407,7 +476,14 @@ elif rank == 7:
     skip_stage_training = comm.recv(source=0, tag=7)
 
     if skip_stage_training != 1:
-        logger.warning("INFO: Beginning execution of model training stage.")
+        logger.warning("INFO: Waiting for greenlight to start training stage.")
+        
+        training_greenlight = comm.recv(source=0, tag=7)
+        if training_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for training stage. Aborting execution.".format(training_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model training stage.".format(training_greenlight))
 
         # Receive task from manager
         task_list = comm.recv(source=0, tag=7)
