@@ -176,7 +176,6 @@ elif rank == 1:
 
                 # Perform data manipulation using user specified data manipulation
                 feat, label = preprocessing(task[1], task[6], task[8])
-                print(feat, label)
 
             comm.send(1, dest=0, tag=1)
 
