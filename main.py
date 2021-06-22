@@ -211,8 +211,7 @@ elif rank == 1:
 
                 # Perform data manipulation using user specified data manipulation
                 feat, label = preprocessing(task[1], task[6], task[8])
-                recomb = recombine(feat, label)
-                print(recomb)
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
             comm.send(1, dest=0, tag=1)
 

@@ -11,6 +11,9 @@ def recombine(features, labels, save=False, **kwargs):
     save -- save a copy of the recombined dataset in CSV format (default False).
     **kwargs -> key: save_path -- path to save recombined dataset (not needed if save == False).
     **kwargs -> key: manip_tag -- name of the data manipulation used on the dataset."""
+    # Convert features and labels from numpy.ndarray to pandas.DataFrame
+    features = pd.DataFrame(features); labels = pd.DataFrame(labels)
+
     # Recombine dataset using pd.concat
     recomb = pd.concat([features, labels], axis=1, join="inner")
 
@@ -23,5 +26,5 @@ def recombine(features, labels, save=False, **kwargs):
         if os.path.exists(save_path) is False:
             os.makedirs(save_path, exist_ok=True)
 
-        recomb.to_csv(save_path + "/" + manip_tag + ".csv", header=None)
+        recomb.to_csv(save_path + "/" + manip_tag + ".csv", index=False, header=None)
         return recomb
