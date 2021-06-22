@@ -98,10 +98,15 @@ if rank == 0:
         # storing models for each dataset, as well as verifying
         # that each specified dataset does exists
         for macro in train_macro_list:
-            # Check that dataset exists. If not, raise file not found error
+            # Check that the dataset and plugin exist. If not, raise file not found error
             if os.path.isfile(macro[1]) is False or os.path.isfile(macro[5]) is False:
                 gl.killmsg(comm, size, True)
-                raise FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path.")
+
+                if os.path.isfile(macro[1]) is False:
+                    raise FileNotFoundError("The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
+
+                else:
+                    raise FileNotFoundError("The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
 
             # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
