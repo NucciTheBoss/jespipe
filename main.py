@@ -8,6 +8,7 @@ import logging
 import pandas as pd
 import numpy as np
 from utils.workerops.preprocessing import preprocessing
+from utils.workerops.recombine import recombine
 
 
 # Global values to be shared across all nodes
@@ -210,6 +211,8 @@ elif rank == 1:
 
                 # Perform data manipulation using user specified data manipulation
                 feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label)
+                print(recomb)
 
             comm.send(1, dest=0, tag=1)
 
