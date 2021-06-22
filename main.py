@@ -26,7 +26,7 @@ if rank == 0:
     from utils.workeradmin import skip
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
-    from utils.workerops import scattershot as scat
+    from utils.workerops import scattershot as sst
 
 
     # Check if we are working in the same directory as main.py.
@@ -108,8 +108,8 @@ if rank == 0:
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
         # Create directives for the worker nodes
-        train_directive_list = scat.generate_train(train_macro_list)
-        sliced_directive_list = scat.slice(train_directive_list, size)
+        train_directive_list = sst.generate_train(train_macro_list)
+        sliced_directive_list = sst.slice(train_directive_list, size)
 
         # Create directory for nodes to log their status if not exist
         os.makedirs("data/.logs", exist_ok=True)
@@ -118,7 +118,7 @@ if rank == 0:
         gl.killmsg(comm, size, False)
 
         # Send greenlight to workers and then follow up with tasks
-        node_rank = scat.delegate(comm, size, sliced_directive_list)
+        node_rank = sst.delegate(comm, size, sliced_directive_list)
 
         # Block until manager hears back from all workers
         node_status = list()
