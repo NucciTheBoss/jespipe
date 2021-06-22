@@ -5,10 +5,9 @@ import re
 import os
 import time
 import logging
-import pandas as pd
-import numpy as np
 from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
+from utils.workerops.paramfactory import paramfactory
 
 
 # Global values to be shared across all nodes
@@ -213,6 +212,9 @@ elif rank == 1:
                 feat, label = preprocessing(task[1], task[6], task[8])
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
             comm.send(1, dest=0, tag=1)
 
         else:
@@ -262,7 +264,23 @@ elif rank == 2:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=2)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=2)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=2)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=2)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
@@ -307,7 +325,23 @@ elif rank == 3:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=3)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=3)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=3)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=3)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
@@ -352,7 +386,23 @@ elif rank == 4:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=4)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=4)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=4)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=4)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
@@ -400,7 +450,23 @@ elif rank == 5:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=5)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=5)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=5)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=5)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
@@ -445,7 +511,23 @@ elif rank == 6:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=6)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=6)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=6)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=6)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
@@ -490,7 +572,23 @@ elif rank == 7:
         # Receive task from manager
         task_list = comm.recv(source=0, tag=7)
         logger.warning("Received task list {} from manager.".format(task_list))
-        comm.send(1, dest=0, tag=7)
+
+        if task_list != []:
+            for task in task_list:
+                logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
+
+                # Perform data manipulation using user specified data manipulation
+                feat, label = preprocessing(task[1], task[6], task[8])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+
+                # Create dictionary that will be passed to plugin
+                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+            comm.send(1, dest=0, tag=7)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=7)
 
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
