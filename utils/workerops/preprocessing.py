@@ -18,7 +18,7 @@ def preprocessing(dataset_path, manip_type, params):
     dataset = pd.read_csv(dataset_path, header=None)
 
     if manip_type == "xgboost":
-        feat, label = _preproc_xgb(dataset, params["n_features"])
+        feat, label = _preproc_xgb(dataset, int(params["n_features"]))
         return feat, label
 
     elif manip_type == "randomforest":
@@ -26,11 +26,11 @@ def preprocessing(dataset_path, manip_type, params):
         return feat, label
 
     elif manip_type == "pca":
-        feat, label = _preproc_pca(dataset, params["n_features"])
+        feat, label = _preproc_pca(dataset, int(params["n_features"]))
         return feat, label
 
     elif manip_type == "candlestick":
-        feat, label = _preproc_candlestick(dataset, params["time_interval"])
+        feat, label = _preproc_candlestick(dataset, int(params["time_interval"]))
         return feat, label
 
     elif manip_type is None:
@@ -93,7 +93,7 @@ def _preproc_randomforest(dataset):
     sel.fit(features, labels.astype('int'))
 
     features_to_select = sel.get_support(indices=True)
-    print('Features to select: ', features_to_select)
+    # print('Features to select: ', features_to_select)
 
     new_features = features[:, features_to_select]
 

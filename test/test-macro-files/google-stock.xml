@@ -17,13 +17,13 @@
                 </parameters>
                 
                 <xgboost tag="xgb1">
-                    <n_features>11</n_features>
+                    <n_features>3</n_features>
                 </xgboost>
 
                 <randomforest tag="rf1"></randomforest>
                 
                 <pca tag="pca1">
-                    <n_features>11</n_features>
+                    <n_features>3</n_features>
                 </pca>
 
                 <candlestick tag="cand1">
