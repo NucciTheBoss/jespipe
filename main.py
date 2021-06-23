@@ -220,7 +220,7 @@ elif rank == 1:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -298,7 +298,7 @@ elif rank == 2:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=2)
 
@@ -359,7 +359,7 @@ elif rank == 3:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=3)
 
@@ -420,7 +420,7 @@ elif rank == 4:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=4)
 
@@ -484,7 +484,7 @@ elif rank == 5:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=5)
 
@@ -545,7 +545,7 @@ elif rank == 6:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=6)
 
@@ -606,7 +606,7 @@ elif rank == 7:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
 
             comm.send(1, dest=0, tag=7)
 

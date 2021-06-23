@@ -1,8 +1,9 @@
-def paramfactory(name, dataframe, model_params, root_path, manip_name, manip_tag):
+def paramfactory(name, model_name, dataframe, model_params, root_path, manip_name, manip_tag):
     """Generate parameter dictionary to be sent out to plugin modules.
     
     Keyword arguments:
     name -- name of the dataset.
+    model_name -- name of the model to be trained.
     dataframe -- pandas DataFrame to be worked on.
     model_params -- user specified hyperparameters for model being trained.
     root_path -- root directory of jespipe.
@@ -12,7 +13,7 @@ def paramfactory(name, dataframe, model_params, root_path, manip_name, manip_tag
     d = dict()
     
     # Set dataset_name, dataframe, and model_params
-    d["dataset_name"] = name; d["dataframe"] = dataframe; d["model_params"] = model_params
+    d["dataset_name"] = name; d["model_name"] = model_name; d["dataframe"] = dataframe; d["model_params"] = model_params
 
     # Generate save_path and log_path then add to root dictionary
     save_path = root_path + "/data/" + name + "/models"
