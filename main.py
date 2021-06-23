@@ -19,6 +19,7 @@ CONFIG_FILE = ".config.json"
 TIME_FMT = "%d-%m-%Y:%I:%M:%S-%p"
 TIME = time.localtime(); TIME = time.strftime(TIME_FMT, TIME)
 STDOUT_BAK = sys.stdout
+PYTHON_PATH = subprocess.getoutput("which python")
 
 
 if rank == 0:
@@ -230,7 +231,7 @@ elif rank == 1:
                 print("--------- Output of {} for model {} with {} ---------".format(task[5], task[2], task[8]))
 
                 try:
-                    subprocess.run([task[5], "train", '"{}"'.format(param_dict)])
+                    subprocess.run([PYTHON_PATH, task[5], "train", '"{}"'.format(param_dict)])
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.")
