@@ -5,6 +5,7 @@ import re
 import os
 import time
 import logging
+import subprocess
 from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
 from utils.workerops.paramfactory import paramfactory
@@ -17,6 +18,7 @@ rank = comm.Get_rank()
 CONFIG_FILE = ".config.json"
 TIME_FMT = "%d-%m-%Y:%I:%M:%S-%p"
 TIME = time.localtime(); TIME = time.strftime(TIME_FMT, TIME)
+STDOUT_BAK = sys.stdout
 
 
 if rank == 0:
@@ -219,6 +221,23 @@ elif rank == 1:
 
                 # Create dictionary that will be passed to plugin
                 param_dict = paramfactory(task[0], recomb, task[4], os.getcwd(), task[6], task[7])
+
+                # Spawn plugin execution and block until the training section of the plugin has completed
+                logger.warning("INFO: Training model...")
+
+                # Swap stdout to log file in order to prevent worker from writing out to the shell
+                sys.stdout = open(f_handler.stream.name, "at")
+                print("--------- Output of {} for model {} with {} ---------".format(task[5], task[2], task[8]))
+
+                try:
+                    subprocess.run([task[5], "train", '"{}"'.format(param_dict)])
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.")
+
+                # Set sys.stdout back to its original output method
+                print("--------- End of model output ---------")
+                sys.stdout = STDOUT_BAK
 
             comm.send(1, dest=0, tag=1)
 
