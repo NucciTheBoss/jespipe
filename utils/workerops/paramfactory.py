@@ -1,5 +1,10 @@
+import joblib
+import uuid
+
+
 def paramfactory(name, model_name, dataframe, model_params, root_path, manip_name, manip_tag):
     """Generate parameter dictionary to be sent out to plugin modules.
+    Save as a pickle and return a file path reference to that pickle.
     
     Keyword arguments:
     name -- name of the dataset.
@@ -9,17 +14,11 @@ def paramfactory(name, model_name, dataframe, model_params, root_path, manip_nam
     root_path -- root directory of jespipe.
     manip_name -- name of the manipulation used on the pandas DataFrame.
     manip_tag -- tag used to uniquely identify dataset manipulation."""
-    # Create root dictionary that will eventually be returned to main.py
+    # Create root dictionary that will be converted to a pickle
     d = dict()
     
-    # Set dataset_name and model_name dataframe
-    d["dataset_name"] = name; d["model_name"] = model_name
-
-    # Convert dataframe to list and then set value in root dictionary
-    d["dataframe"] = dataframe.values.tolist()
-    
-    # Set model parameters
-    d["model_params"] = model_params
+    # Set dataset_name, model_name, dataframe, and model parameters
+    d["dataset_name"] = name; d["model_name"] = model_name; d["dataframe"] = dataframe; d["model_params"] = model_params
 
     # Generate save_path and log_path then add to root dictionary
     save_path = root_path + "/data/" + name + "/models"
@@ -29,4 +28,8 @@ def paramfactory(name, model_name, dataframe, model_params, root_path, manip_nam
     # Add tuple manip_info
     d["manip_info"] = (manip_name, manip_tag)
 
-    return d
+    # Establish path to file in .tmp directory and dump dictionary
+    pickle_path = root_path + "/data/.tmp/" + str(uuid.uuid4()) + ".pkl"
+    joblib.dump(d, pickle_path)
+    
+    return pickle_path
