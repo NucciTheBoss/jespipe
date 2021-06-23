@@ -12,8 +12,14 @@ def paramfactory(name, model_name, dataframe, model_params, root_path, manip_nam
     # Create root dictionary that will eventually be returned to main.py
     d = dict()
     
-    # Set dataset_name, dataframe, and model_params
-    d["dataset_name"] = name; d["model_name"] = model_name; d["dataframe"] = dataframe; d["model_params"] = model_params
+    # Set dataset_name and model_name dataframe
+    d["dataset_name"] = name; d["model_name"] = model_name
+
+    # Convert dataframe to list and then set value in root dictionary
+    d["dataframe"] = dataframe.values.tolist()
+    
+    # Set model parameters
+    d["model_params"] = model_params
 
     # Generate save_path and log_path then add to root dictionary
     save_path = root_path + "/data/" + name + "/models"

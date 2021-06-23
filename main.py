@@ -228,16 +228,16 @@ elif rank == 1:
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
                 sys.stdout = open(f_handler.stream.name, "at")
-                print("--------- Output of {} for model {} with {} ---------".format(task[5], task[2], task[8]))
+                print("--- Output of {} for model {} using manipulation {} with parameters {} ---".format(task[5], task[2], task[6], task[8]))
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", '"{}"'.format(param_dict)])
+                    subprocess.run([PYTHON_PATH, task[5], "train", '"{}"'.format(param_dict)], stdout=sys.stdout, stderr=sys.stdout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.")
 
                 # Set sys.stdout back to its original output method
-                print("--------- End of model output ---------")
+                print("--- End of model output ---")
                 sys.stdout = STDOUT_BAK
 
             comm.send(1, dest=0, tag=1)
