@@ -3,6 +3,7 @@ import json
 import sys
 import re
 import os
+import shutil
 import time
 import logging
 import subprocess
@@ -224,11 +225,24 @@ elif rank == 1:
 
                 # Perform data manipulation using user specified data manipulation
                 feat, label = preprocessing(task[1], task[6], task[8])
+
+                # Reassign task[6], task[7], and task[8] if they set to None
+                task[6] = "default" if task[6] is None else task[6]
+                task[7] = "default" if task[7] is None else task[7]
+                task[8] = "default" if task[8] is None else task[8]
+
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
+                # Created special directory for each individual manipulation
+                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                if os.path.exists(save_path):
+                    shutil.rmtree(save_path)
+
+                else:
+                    os.makedirs(save_path)
+
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
-                print(param_dict)
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], save_path, task[6], task[7], os.getcwd())
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")

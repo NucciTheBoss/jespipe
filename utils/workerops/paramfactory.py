@@ -2,7 +2,7 @@ import joblib
 import uuid
 
 
-def paramfactory(name, model_name, dataframe, model_params, root_path, manip_name, manip_tag):
+def paramfactory(name, model_name, dataframe, model_params, save_path, manip_name, manip_tag, root_path):
     """Generate parameter dictionary to be sent out to plugin modules.
     Save as a pickle and return a file path reference to that pickle.
     
@@ -11,9 +11,10 @@ def paramfactory(name, model_name, dataframe, model_params, root_path, manip_nam
     model_name -- name of the model to be trained.
     dataframe -- pandas DataFrame to be worked on.
     model_params -- user specified hyperparameters for model being trained.
-    root_path -- root directory of jespipe.
+    save_path -- where to save manipulation specific model files.
     manip_name -- name of the manipulation used on the pandas DataFrame.
-    manip_tag -- tag used to uniquely identify dataset manipulation."""
+    manip_tag -- tag used to uniquely identify dataset manipulation.
+    root_path -- root directory of jespipe."""
     # Create root dictionary that will be converted to a pickle
     d = dict()
     
@@ -21,7 +22,6 @@ def paramfactory(name, model_name, dataframe, model_params, root_path, manip_nam
     d["dataset_name"] = name; d["model_name"] = model_name; d["dataframe"] = dataframe; d["model_params"] = model_params
 
     # Generate save_path and log_path then add to root dictionary
-    save_path = root_path + "/data/" + name + "/models"
     log_path = save_path + "/stat"
     d["save_path"] = save_path; d["log_path"] = log_path
 
