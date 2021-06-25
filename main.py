@@ -236,13 +236,13 @@ elif rank == 1:
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
-                    shutil.rmtree(save_path)
+                    shutil.rmtree(save_path, ignore_errors=True)
 
                 else:
-                    os.makedirs(save_path)
+                    os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
