@@ -3,6 +3,7 @@ import json
 import sys
 import re
 import os
+import shutil
 import time
 import logging
 import subprocess
@@ -19,6 +20,7 @@ CONFIG_FILE = ".config.json"
 TIME_FMT = "%d-%m-%Y:%I:%M:%S-%p"
 TIME = time.localtime(); TIME = time.strftime(TIME_FMT, TIME)
 STDOUT_BAK = sys.stdout
+PYTHON_PATH = subprocess.getoutput("which python")
 
 
 if rank == 0:
@@ -121,6 +123,9 @@ if rank == 0:
         # Create directory for nodes to log their status if not exist
         os.makedirs("data/.logs", exist_ok=True)
 
+        # Create directory for processes to write temporary files to
+        os.makedirs("data/.tmp", exist_ok=True)
+
         # Broadcast that everything is good to go for the training stage
         gl.killmsg(comm, size, False)
 
@@ -154,17 +159,20 @@ if rank == 0:
             # Check that dataset exists. If not, raise file not found error
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
-                raise(FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path."))
+                raise FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path.")
 
             # Check if models exist. If not, raise file not found error
             if os.path.exists("data/" + macro[0] + "/models") is False:
-                raise(FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0])))
+                raise FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
             # Create directory for nodes to log their status if not exist
             os.makedirs("data/.logs", exist_ok=True)
+
+            # Create directory for processes to write temporary files to
+            os.makedirs("data/.tmp", exist_ok=True)
 
     else:
         skip.skip_attack(comm, size, True)
@@ -217,27 +225,42 @@ elif rank == 1:
 
                 # Perform data manipulation using user specified data manipulation
                 feat, label = preprocessing(task[1], task[6], task[8])
+
+                # Reassign task[6], task[7], and task[8] if they set to None
+                task[6] = "default" if task[6] is None else task[6]
+                task[7] = "default" if task[7] is None else task[7]
+                task[8] = "default" if task[8] is None else task[8]
+
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
 
+                # Created special directory for each individual manipulation
+                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                if os.path.exists(save_path):
+                    shutil.rmtree(save_path, ignore_errors=True)
+
+                else:
+                    os.makedirs(save_path, exist_ok=True)
+
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], os.getcwd(), task[6], task[7])
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
+                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
                 sys.stdout = open(f_handler.stream.name, "at")
-                print("--------- Output of {} for model {} with {} ---------".format(task[5], task[2], task[8]))
 
                 try:
-                    subprocess.run([task[5], "train", '"{}"'.format(param_dict)])
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
 
                 except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.")
+                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
                 # Set sys.stdout back to its original output method
-                print("--------- End of model output ---------")
                 sys.stdout = STDOUT_BAK
+
+                logger.warning("\n--- End of model output ---\n")
 
             comm.send(1, dest=0, tag=1)
 
