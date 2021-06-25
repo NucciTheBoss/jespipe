@@ -255,7 +255,7 @@ elif rank == 1:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
 
                 except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.")
+                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
                 # Set sys.stdout back to its original output method
                 sys.stdout = STDOUT_BAK
