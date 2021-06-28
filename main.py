@@ -174,16 +174,18 @@ if rank == 0:
             os.makedirs("data/.tmp", exist_ok=True)
 
     else:
+        # Broadcast out to workers that manager is skipping the attack stage
         skip.skip_attack(comm, size, True)
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
-        # TODO: Create method for generating clean_macro_list
+        # Broadcast out to workers that we are now operating on the cleaning stage
+        skip.skip_clean(comm, size, False)
         pass
 
     else:
-        # TODO: Implement broadcast for cleaning stage
-        pass
+        # Broadcast out to workers that manager is skipping the cleaning stage
+        skip.skip_clean(comm, size, True)
 
     print("All done!")
 
@@ -278,7 +280,13 @@ elif rank == 1:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping clean stage of pipeline.")
 
 elif rank == 2:
     greenlight = comm.recv(source=0, tag=2)
@@ -369,7 +377,13 @@ elif rank == 2:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
 elif rank == 3:
     greenlight = comm.recv(source=0, tag=3)
@@ -460,7 +474,13 @@ elif rank == 3:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
 elif rank == 4:
     greenlight = comm.recv(source=0, tag=4)
@@ -554,7 +574,13 @@ elif rank == 4:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
 elif rank == 5:
     greenlight = comm.recv(source=0, tag=5)
@@ -645,7 +671,13 @@ elif rank == 5:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
 elif rank == 6:
     greenlight = comm.recv(source=0, tag=6)
@@ -736,7 +768,13 @@ elif rank == 6:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
 elif rank == 7:
     greenlight = comm.recv(source=0, tag=7)
@@ -827,4 +865,10 @@ elif rank == 7:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    # TODO: Write cleaning stage implementation for worker nodes
+    skip_clean_stage = comm.recv(source=0, tag=1)
+
+    if skip_clean_stage != 1:
+        logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+    else:
+        logger.warning("WARNING: Skipping cleaning stage of pipeline.")
