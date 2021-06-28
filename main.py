@@ -19,7 +19,6 @@ rank = comm.Get_rank()
 CONFIG_FILE = ".config.json"
 TIME_FMT = "%d-%m-%Y:%I:%M:%S-%p"
 TIME = time.localtime(); TIME = time.strftime(TIME_FMT, TIME)
-STDOUT_BAK = sys.stdout
 PYTHON_PATH = subprocess.getoutput("which python")
 
 
@@ -249,16 +248,16 @@ elif rank == 1:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -342,16 +341,16 @@ elif rank == 2:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -435,16 +434,16 @@ elif rank == 3:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -528,16 +527,16 @@ elif rank == 4:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
                 # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -624,16 +623,16 @@ elif rank == 5:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -717,16 +716,16 @@ elif rank == 6:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
@@ -810,16 +809,16 @@ elif rank == 7:
                 logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                sys.stdout = open(f_handler.stream.name, "at")
+                fout = open(f_handler.stream.name, "at")
 
                 try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=sys.stdout, stderr=sys.stdout)
+                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                sys.stdout = STDOUT_BAK
+                # Close the appension for the log file
+                fout.close()
 
                 logger.warning("\n--- End of model output ---\n")
 
