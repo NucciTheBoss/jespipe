@@ -259,8 +259,6 @@ elif rank == 1:
                 # Close the appension for the log file
                 fout.close()
 
-                logger.warning("\n--- End of model output ---\n")
-
             comm.send(1, dest=0, tag=1)
 
         else:
@@ -351,8 +349,6 @@ elif rank == 2:
 
                 # Close the appension for the log file
                 fout.close()
-
-                logger.warning("\n--- End of model output ---\n")
 
             comm.send(1, dest=0, tag=2)
 
@@ -445,8 +441,6 @@ elif rank == 3:
                 # Close the appension for the log file
                 fout.close()
 
-                logger.warning("\n--- End of model output ---\n")
-
             comm.send(1, dest=0, tag=3)
 
         else:
@@ -537,8 +531,6 @@ elif rank == 4:
 
                 # Set sys.stdout back to its original output method
                 fout.close()
-
-                logger.warning("\n--- End of model output ---\n")
 
             comm.send(1, dest=0, tag=4)
 
@@ -634,8 +626,6 @@ elif rank == 5:
                 # Close the appension for the log file
                 fout.close()
 
-                logger.warning("\n--- End of model output ---\n")
-
             comm.send(1, dest=0, tag=5)
 
         else:
@@ -727,8 +717,6 @@ elif rank == 6:
                 # Close the appension for the log file
                 fout.close()
 
-                logger.warning("\n--- End of model output ---\n")
-
             comm.send(1, dest=0, tag=6)
 
         else:
@@ -819,8 +807,6 @@ elif rank == 7:
 
                 # Close the appension for the log file
                 fout.close()
-
-                logger.warning("\n--- End of model output ---\n")
 
             comm.send(1, dest=0, tag=7)
 
