@@ -98,7 +98,7 @@
             </fgsm>
         </dataset>
 
-        <dataset file="test/datasets/google-stock/google-clean.csv">
+        <dataset file="test/datasets/ozone-level-detection/ozone-level-clean.csv">
             <cw_inf tag="cw_inf1-ozone">
                 <confidence>0.0</confidence>
                 <targeted>0</targeted>
