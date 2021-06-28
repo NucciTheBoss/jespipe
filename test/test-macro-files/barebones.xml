@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <train>
-        <dataset file="some/path/to/a/test.csv">
-            <model>
+        <dataset file="test/datasets/google-stock-xgb/xgb1.csv">
+            <model plugin="plugins/LSTM/LSTM.py">
                 <name>barebones_model</name>
+
+                <algorithm>LSTM</algorithm>
+
                 <parameters>
                     <squence_length>12</squence_length>
                     <batch_size>256</batch_size>
@@ -15,7 +18,4 @@
             </model>
         </dataset>
     </train>
-    <attack>
-        <dataset file="some/path/to/a/test.csv"></dataset>
-    </attack>
 </simu>
