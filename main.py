@@ -230,7 +230,7 @@ elif rank == 1:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -321,7 +321,7 @@ elif rank == 2:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -412,7 +412,7 @@ elif rank == 3:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -503,7 +503,7 @@ elif rank == 4:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -597,7 +597,7 @@ elif rank == 5:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -688,7 +688,7 @@ elif rank == 6:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
@@ -779,7 +779,7 @@ elif rank == 7:
                 task[7] = "default" if task[7] is None else task[7]
                 task[8] = "default" if task[8] is None else task[8]
 
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/models/maniped_data", manip_tag=task[7])
+                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
                 save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
