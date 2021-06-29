@@ -190,27 +190,46 @@ if rank == 0:
         if clean_control["compress"] is not None:
             for key in clean_control["compress"]:
                 # Create compressor that will be used to shrink the data directory
-                compressor = Compression("data", key)
+                shutil.move("data", key)
+                compressor = Compression(key, key)
 
                 # Create archive based on user-specified compression algorithm
                 if clean_control["compress"][key]["format"] == "gzip":
                     compressor.togzip()
+
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
                 elif clean_control["compress"][key]["format"] == "bz2":
                     compressor.tobzip()
 
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.tar.bz2".format(key), "{}/{}.tar.bz2".format(clean_control["compress"][key]["path"], key))
+
                 elif clean_control["compress"][key]["format"] == "zip":
                     compressor.tozip()
+
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.zip".format(key), "{}/{}.zip".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "xz":
                     compressor.toxz()
 
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.tar.xz".format(key), "{}/{}.tar.xz".format(clean_control["compress"][key]["path"], key))
+
                 elif clean_control["compress"][key]["format"] == "tar":
                     compressor.totar()
+
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.tar".format(key), "{}/{}.tar".format(clean_control["compress"][key]["path"], key))
 
                 else:
                     # Catch all for if user passes invalid compression algorithm
                     compressor.togzip()
+
+                    if os.path.exists(clean_control["compress"][key]["path"]):
+                        shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
     else:
         # Broadcast out to workers that manager is skipping the cleaning stage
