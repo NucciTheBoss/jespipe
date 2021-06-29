@@ -307,6 +307,9 @@ def xml2dict(xml_file, config_file):
 
                     d["clean"]["plot"][plot["tag"]].update({"tags": tag_list})
 
+        else:
+            d["clean"]["plot"] = None
+
         clean_tmp = clean.find("clean_tmp")
         if clean_tmp is None:
             try:
@@ -337,5 +340,8 @@ def xml2dict(xml_file, config_file):
                 path = compress_config["path"] if path is None else path.text
 
                 d["clean"]["compress"].update({name: {"format": format, "path": path}})
+
+        else:
+            d["clean"]["compress"] = None
 
     return d

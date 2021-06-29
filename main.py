@@ -175,7 +175,15 @@ if rank == 0:
     if clean_control is not None:
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
-        pass
+
+        if clean_control["plot"] is not None:
+            pass
+
+        if clean_control["clean_tmp"] == 1:
+            pass
+
+        if clean_control["compress"] is not None:
+            pass
 
     else:
         # Broadcast out to workers that manager is skipping the cleaning stage
