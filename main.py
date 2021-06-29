@@ -142,9 +142,6 @@ if rank == 0:
         for node in node_rank:
             node_status.append(comm.recv(source=node, tag=node))
 
-        print("Training is done!")
-        print(node_status)
-
     else:
         # Broadcast out to workers that manager is skipping the training stage
         skip.skip_train(comm, size, True)
@@ -186,7 +183,20 @@ if rank == 0:
             # Generate and slice directive list that will be sent out to the workers
             clean_directive_list = sst.generate_clean(clean_control["plot"], ROOT_PATH + "/data/plots", ROOT_PATH + "/data")
             sliced_directive_list = sst.slice(clean_directive_list, size)
-            # TODO: Write delegate method for the worker nodes
+            
+            # Send greenlight to workers
+            gl.killmsg(comm, size, False)
+
+            # Delegate tasks out to the available workers in the COMM_WORLD
+            node_rank = sst.delegate(comm, size, sliced_directive_list)
+
+            # Block until hearing back from all the worker nodes
+            node_status = list()
+            for node in node_rank:
+                node_status.append(comm.recv(source=node, tag=node))
+
+        else:
+            gl.killmsg(comm, size, True)
 
         if clean_control["clean_tmp"] == 1:
             shutil.rmtree("data/.tmp", ignore_errors=True)
@@ -337,6 +347,25 @@ elif rank == 1:
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
 
+        cleaning_greenlight = comm.recv(source=0, tag=1)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=1)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=1)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=1)
+
     else:
         logger.warning("WARNING: Skipping clean stage of pipeline.")
 
@@ -433,6 +462,25 @@ elif rank == 2:
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+        cleaning_greenlight = comm.recv(source=0, tag=2)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=2)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=2)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=2)
 
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
@@ -531,6 +579,25 @@ elif rank == 3:
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
 
+        cleaning_greenlight = comm.recv(source=0, tag=3)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=3)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=3)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=3)
+
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
@@ -613,9 +680,6 @@ elif rank == 4:
     else:
         logger.warning("WARNING: Skipping training stage of pipeline.")
 
-        # Send message to manager acknowledging the skipping of the training stage
-        comm.send(1, dest=0, tag=2)
-
     # ATTACK STAGE
     skip_stage_attack = comm.recv(source=0, tag=4)
 
@@ -630,6 +694,25 @@ elif rank == 4:
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+        cleaning_greenlight = comm.recv(source=0, tag=4)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=4)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=4)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=4)
 
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
@@ -728,6 +811,25 @@ elif rank == 5:
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
 
+        cleaning_greenlight = comm.recv(source=0, tag=5)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=5)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=5)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=5)
+
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
@@ -825,6 +927,25 @@ elif rank == 6:
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
 
+        cleaning_greenlight = comm.recv(source=0, tag=6)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=6)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=6)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=6)
+
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
 
@@ -921,6 +1042,25 @@ elif rank == 7:
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
+
+        cleaning_greenlight = comm.recv(source=0, tag=7)
+        if cleaning_greenlight != 1:
+            # 0 message means worker is not needed any more
+            logger.warning("WARNING: Received greenlight message {} for cleaning stage. Aborting execution.".format(cleaning_greenlight))
+            exit(0)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of cleaning stage.".format(cleaning_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=7)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=7)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=7)
 
     else:
         logger.warning("WARNING: Skipping cleaning stage of pipeline.")
