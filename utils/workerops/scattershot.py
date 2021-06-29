@@ -84,8 +84,8 @@ def generate_clean(plot_dict, save_path, data_path):
     root = list()
 
     for key in plot_dict:
-        plugin_path = key["plugin"]
-        tag_list = key["tags"]
+        plugin_path = plot_dict[key]["plugin"]
+        tag_list = plot_dict[key]["tags"]
 
         root_paths = gp.getdirs(data_path)
         for i in range(0, len(tag_list)):

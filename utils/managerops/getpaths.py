@@ -7,10 +7,10 @@ def getdirs(*paths):
     
     Keyword arguments:
     *paths -- paths to get the subdirectory structure of."""
-    root = list()
+    root_list = list()
     for path in paths:
         for root, directories, files in os.walk(path):
             for directory in directories:
-                root.append(os.path.join(root, directory))
+                root_list.append(os.path.join(root, directory))
 
-    return root
+    return root_list

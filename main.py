@@ -177,12 +177,15 @@ if rank == 0:
         skip.skip_clean(comm, size, False)
 
         if clean_control["plot"] is not None:
-            pass
+            clean_directive_list = sst.generate_clean(clean_control["plot"], os.getcwd() + "/data/plots", os.getcwd() + "/data")
+            sliced_directive_list = sst.slice(clean_directive_list, size)
+            # TODO: Write delegate method for the worker nodes
 
         if clean_control["clean_tmp"] == 1:
-            pass
+            shutil.rmtree(os.getcwd() + "/data/.tmp", ignore_errors=True)
 
         if clean_control["compress"] is not None:
+            print("In compress substage")
             pass
 
     else:
