@@ -16,6 +16,7 @@ from utils.workerops.paramfactory import paramfactory
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
+ROOT_PATH = os.getcwd()
 CONFIG_FILE = ".config.json"
 TIME_FMT = "%d-%m-%Y:%I:%M:%S-%p"
 TIME = time.localtime(); TIME = time.strftime(TIME_FMT, TIME)
@@ -179,7 +180,7 @@ if rank == 0:
 
         if clean_control["plot"] is not None:
             # Generate and slice directive list that will be sent out to the workers
-            clean_directive_list = sst.generate_clean(clean_control["plot"], os.getcwd() + "/data/plots", os.getcwd() + "/data")
+            clean_directive_list = sst.generate_clean(clean_control["plot"], ROOT_PATH + "/data/plots", ROOT_PATH + "/data")
             sliced_directive_list = sst.slice(clean_directive_list, size)
             # TODO: Write delegate method for the worker nodes
 
@@ -263,7 +264,7 @@ elif rank == 1:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -271,7 +272,7 @@ elif rank == 1:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -360,7 +361,7 @@ elif rank == 2:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -368,7 +369,7 @@ elif rank == 2:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -457,7 +458,7 @@ elif rank == 3:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -465,7 +466,7 @@ elif rank == 3:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -554,7 +555,7 @@ elif rank == 4:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -562,7 +563,7 @@ elif rank == 4:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -654,7 +655,7 @@ elif rank == 5:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -662,7 +663,7 @@ elif rank == 5:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -751,7 +752,7 @@ elif rank == 6:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -759,7 +760,7 @@ elif rank == 6:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -848,7 +849,7 @@ elif rank == 7:
                 recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
 
                 # Created special directory for each individual manipulation
-                save_path = os.getcwd() + "/data/" + task[0] + "/models/" + task[7]
+                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
                 if os.path.exists(save_path):
                     shutil.rmtree(save_path, ignore_errors=True)
 
@@ -856,7 +857,7 @@ elif rank == 7:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], os.getcwd())
+                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
