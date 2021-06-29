@@ -377,7 +377,7 @@ elif rank == 2:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=2)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
@@ -474,7 +474,7 @@ elif rank == 3:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=3)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
@@ -574,7 +574,7 @@ elif rank == 4:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=4)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
@@ -671,7 +671,7 @@ elif rank == 5:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=5)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
@@ -768,7 +768,7 @@ elif rank == 6:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=6)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
@@ -865,7 +865,7 @@ elif rank == 7:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
 
     # CLEANING STAGE
-    skip_clean_stage = comm.recv(source=0, tag=1)
+    skip_clean_stage = comm.recv(source=0, tag=7)
 
     if skip_clean_stage != 1:
         logger.warning("INFO: Waiting for greenlight to start cleaning stage.")
