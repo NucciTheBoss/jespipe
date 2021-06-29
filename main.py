@@ -30,12 +30,21 @@ PYTHON_PATH = subprocess.getoutput("which python")
 if rank == 0:
     # Staging: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
+    from colorama import Fore, init
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
     from utils.managerops.compress import Compression
+
+    
+    # Initialize colorama and define lambda functions
+    init(autoreset=True)
+    print_good = lambda x: print(Fore.GREEN + x)
+    print_info = lambda x: print(Fore.BLUE + x)
+    print_bad = lambda x: print(Fore.RED + x)
+    print_status = lambda x: print(Fore.YELLOW + x)
 
 
     # Check if we are working in the same directory as main.py.
