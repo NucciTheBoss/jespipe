@@ -70,7 +70,7 @@
  
     <clean>
         <clear_tmp></clear_tmp>
-        <plot plugin="/path/to/plotting/function.py">
+        <plot plugin="/path/to/plotting/function.py" tag="plot1">
             <tag>xbg1</tag>
             <tag>rf1</tag>
             <tag>pca1</tag>

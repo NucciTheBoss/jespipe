@@ -71,6 +71,12 @@ if rank == 0:
     attack_control = job_control["attack"] if "attack" in job_control else None
     clean_control = job_control["clean"] if "clean" in job_control else None
 
+    # Create directory for nodes to log their status if not exist
+    os.makedirs("data/.logs", exist_ok=True)
+
+    # Create directory for processes to write temporary files to
+    os.makedirs("data/.tmp", exist_ok=True)
+
     # Begin execution the stages for the pipeline. Inform workers they are ready to start!
     gl.killmsg(comm, size, False)
 
@@ -119,12 +125,6 @@ if rank == 0:
         train_directive_list = sst.generate_train(train_macro_list)
         sliced_directive_list = sst.slice(train_directive_list, size)
 
-        # Create directory for nodes to log their status if not exist
-        os.makedirs("data/.logs", exist_ok=True)
-
-        # Create directory for processes to write temporary files to
-        os.makedirs("data/.tmp", exist_ok=True)
-
         # Broadcast that everything is good to go for the training stage
         gl.killmsg(comm, size, False)
 
@@ -166,12 +166,6 @@ if rank == 0:
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
-
-            # Create directory for nodes to log their status if not exist
-            os.makedirs("data/.logs", exist_ok=True)
-
-            # Create directory for processes to write temporary files to
-            os.makedirs("data/.tmp", exist_ok=True)
 
     else:
         # Broadcast out to workers that manager is skipping the attack stage
