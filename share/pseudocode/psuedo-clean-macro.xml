@@ -69,9 +69,17 @@
     </attack>
  
     <clean>
-        <plot plugin="/path/to/plotting/function.py"></plot>
-        <compress format="gzip"></compress>
         <clear_tmp></clear_tmp>
-        <extract name="simu1" format="gzip" path="~/Documents/simu1_output"></extract>
+        <plot plugin="/path/to/plotting/function.py" tag="plot1">
+            <tag>xbg1</tag>
+            <tag>rf1</tag>
+            <tag>pca1</tag>
+            <tag>cand1</tag>
+        </plot>
+        <compress>
+            <format>gzip</format>
+            <name>run1</name>
+            <path>~/Documents</path>
+        </compress>
     </clean>
 </simu>

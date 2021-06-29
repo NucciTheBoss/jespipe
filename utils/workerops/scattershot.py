@@ -1,4 +1,5 @@
 import numpy as np
+from ..managerops import getpaths as gp
 
 
 def generate_train(macro_list):
@@ -69,6 +70,31 @@ def generate_attack(macro_list):
 
         else:
              root.append((dataset_name, dataset_path, None, None, None))
+
+    return root
+
+
+def generate_clean(plot_dict, save_path, data_path):
+    """Generate scatterable clean directive list.
+    
+    Keyword arguments:
+    plot_dict -- dictionary containing user-defined macros for clean stage.
+    save_path -- location to save user-generated plots.
+    data_path -- location of trained models with stored data."""
+    root = list()
+
+    for key in plot_dict:
+        plugin_path = plot_dict[key]["plugin"]
+        tag_list = plot_dict[key]["tags"]
+
+        root_paths = gp.getdirs(data_path)
+        for i in range(0, len(tag_list)):
+            for path in root_paths:
+                if tag_list[i] in path:
+                    tag_list[i] = path
+                    break
+
+        root.append((plugin_path, tag_list, key, save_path))
 
     return root
 

@@ -17,7 +17,7 @@ def xml2dict(xml_file, config_file):
     # Split macro file into training, attack, and cleanup
     train = soup.find("train"); attack = soup.find("attack"); clean = soup.find("clean")
     train = BeautifulSoup(str(train), "xml"); attack = BeautifulSoup(str(attack), "xml"); clean = BeautifulSoup(str(clean), "xml")
-    train_data = train.find_all("dataset"); attack_data = attack.find_all("dataset"); clean_data = clean.find_all("dataset")
+    train_data = train.find_all("dataset"); attack_data = attack.find_all("dataset")
     
     # Parse train tag; skip if not specified in XML file
     if train_data != []:
@@ -285,12 +285,63 @@ def xml2dict(xml_file, config_file):
                 # Set to none if FGSM is not mentioned in the macro XML file
                 d["attack"][data_name]["FGSM"] = None
 
-    # TODO: Figure out from Sheila next week what she wants me to do with this section
-    # # Parse clean tag; skip if not specified in XML file
-    # if clean_data != []:
-    #     d["clean"] = dict()
-    #     for dataset in clean_data:
-    #         # TODO: Still working on the specifics for the clean tag
-    #         pass
+    # Parse clean tag; skip if not specified in XML file
+    if clean != []:
+        d["clean"] = dict()
+        clean_config = config_file["clean"]
+
+        # There are only three supported tags for clean stage: plot, clean_tmp, and compress
+        plots = clean.find_all("plot")
+        if plots != []:
+            # Add plot top-level dict to root dictionary
+            d["clean"]["plot"] = dict()
+            for plot in plots:
+                d["clean"]["plot"][plot["tag"]] = {"plugin": plot["plugin"]}
+
+                # Find specified tags in macro file
+                tags = plot.find_all("tag")
+                if tags != []:
+                    tag_list = list()
+                    for tag in tags:
+                        tag_list.append(tag.text)
+
+                    d["clean"]["plot"][plot["tag"]].update({"tags": tag_list})
+
+        else:
+            d["clean"]["plot"] = None
+
+        clean_tmp = clean.find("clean_tmp")
+        if clean_tmp is None:
+            try:
+                d["clean"]["clean_tmp"] = clean_config["clean_tmp"]
+
+            except KeyError:
+                d["clean"]["clean_tmp"] = 0
+
+        else:
+            d["clean"]["clean_tmp"] = 1
+
+        compress = clean.find_all("compress")
+        if compress != []:
+            d["clean"]["compress"] = dict()
+            try:
+                compress_config = clean_config["compress"]
+
+            except KeyError:
+                raise KeyError("Clean key compress is not present in .config.json. Please add default compress parameters to .config.json")
+
+            for compression in compress:
+                format = compression.find("format")
+                name = compression.find("name")
+                path = compression.find("path")
+
+                format = compress_config["format"] if format is None else format.text
+                name = compress_config["name"] if name is None else name.text
+                path = compress_config["path"] if path is None else path.text
+
+                d["clean"]["compress"].update({name: {"format": format, "path": path}})
+
+        else:
+            d["clean"]["compress"] = None
 
     return d

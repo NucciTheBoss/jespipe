@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <clean>
+        <clear_tmp></clear_tmp>
+        <plot plugin="/path/to/plotting/function.py" tag="plot1">
+            <tag>xbg1</tag>
+            <tag>rf1</tag>
+            <tag>pca1</tag>
+            <tag>cand1</tag>
+        </plot>
+        <compress>
+            <format>gzip</format>
+            <name>run1</name>
+            <path>~/Documents</path>
+        </compress>
+    </clean>
+</simu>

@@ -64,5 +64,14 @@
             "max_eps": 1,
             "eps_step": 0.1
         }
-    }       
+    },
+    
+    "clean": {
+        "clean_tmp": 1,
+        "compress": {
+            "format": "gzip",
+            "name": "default",
+            "path": "$PWD"
+        }
+    }
 }
