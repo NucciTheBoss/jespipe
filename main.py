@@ -30,6 +30,7 @@ if rank == 0:
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
+    from utils.managerops.compress import Compression
 
 
     # Check if we are working in the same directory as main.py.
@@ -177,17 +178,39 @@ if rank == 0:
         skip.skip_clean(comm, size, False)
 
         if clean_control["plot"] is not None:
+            # Generate and slice directive list that will be sent out to the workers
             clean_directive_list = sst.generate_clean(clean_control["plot"], os.getcwd() + "/data/plots", os.getcwd() + "/data")
             sliced_directive_list = sst.slice(clean_directive_list, size)
             # TODO: Write delegate method for the worker nodes
 
         if clean_control["clean_tmp"] == 1:
-            shutil.rmtree(os.getcwd() + "/data/.tmp", ignore_errors=True)
+            shutil.rmtree("data/.tmp", ignore_errors=True)
 
         if clean_control["compress"] is not None:
-            print("In compress substage")
-            pass
+            for key in clean_control["compress"]:
+                # Create compressor that will be used to shrink the data directory
+                compressor = Compression("data", key)
 
+                # Create archive based on user-specified compression algorithm
+                if clean_control["compress"][key]["format"] == "gzip":
+                    compressor.togzip()
+                
+                elif clean_control["compress"][key]["format"] == "bz2":
+                    compressor.tobzip()
+
+                elif clean_control["compress"][key]["format"] == "zip":
+                    compressor.tozip()
+
+                elif clean_control["compress"][key]["format"] == "xz":
+                    compressor.toxz()
+
+                elif clean_control["compress"][key]["format"] == "tar":
+                    compressor.totar()
+
+                else:
+                    # Catch all for if user passes invalid compression algorithm
+                    compressor.togzip()
+                
     else:
         # Broadcast out to workers that manager is skipping the cleaning stage
         skip.skip_clean(comm, size, True)
