@@ -4,6 +4,7 @@ import sys
 import warnings
 import re
 import os
+from tqdm import tqdm
 import shutil
 import time
 import logging
@@ -170,7 +171,7 @@ if rank == 0:
         print_info("Blocking until all workers complete training tasks.")
         # Block until manager hears back from all workers
         node_status = list()
-        for node in node_rank:
+        for node in tqdm(node_rank, desc="Worker node task completion progress"):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Training stage complete!")
@@ -245,7 +246,7 @@ if rank == 0:
             print_info("Blocking until all workers complete plotting tasks.")
             # Block until hearing back from all the worker nodes
             node_status = list()
-            for node in node_rank:
+            for node in tqdm(node_rank, desc="Worker node task completion progress"):
                 node_status.append(comm.recv(source=node, tag=node))
 
         else:
