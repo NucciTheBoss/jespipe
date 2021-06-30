@@ -368,10 +368,11 @@ elif rank == 1:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-1/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -484,10 +485,11 @@ elif rank == 2:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-2/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -600,10 +602,11 @@ elif rank == 3:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-3/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -716,10 +719,11 @@ elif rank == 4:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-4/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -832,10 +836,11 @@ elif rank == 5:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-5/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -948,10 +953,11 @@ elif rank == 6:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-6/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -1064,10 +1070,11 @@ elif rank == 7:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-7/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
