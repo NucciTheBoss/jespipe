@@ -12,9 +12,11 @@ from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
 from utils.workerops.paramfactory import paramfactory
 
+
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
+
 
 # Global values to be shared across all nodes
 comm = MPI.COMM_WORLD
