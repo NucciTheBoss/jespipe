@@ -49,22 +49,32 @@ if rank == 0:
     print_status = lambda x: print(Fore.YELLOW + x)
 
 
+    print_status("Launching preprocessing stage.")
     # Check if we are working in the same directory as main.py.
     # If not, throw error as that will impact the pipelines ability to run.
+    print_info("Checking if running out of same directory as {}".format(sys.argv[0]))
     cwd_contents = [f for f in os.listdir(".") if os.path.isfile(f)]
     if sys.argv[0] not in cwd_contents:
         gl.killmsg(comm, size, True)
-        raise OSError("Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
+        raise OSError(Fore.RED + "Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
 
     # Read in config to get default configurations file
-    fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
-    config = json.loads(config)
+    print_info("Loading configuration file {}.".format(CONFIG_FILE))
+    try:
+        fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
+        config = json.loads(config)
+    
+    except:
+        gl.killmsg(comm, size, True)
+        raise OSError(Fore.RED + "Cannot find or read {}. Please veify that {} exists and is readable.".format(CONFIG_FILE, CONFIG_FILE))
 
     # Read in marco XML file
+    print_info("Checking if macro XML file passed at command line.")
     if len(sys.argv) != 2:
         gl.killmsg(comm, size, True)
-        raise ValueError("No macro XML file specified before launching pipeline.")
+        raise ValueError(Fore.RED + "No macro XML file specified before launching pipeline.")
 
+    print_info("Loading macro XML file {}.".format(sys.argv[1]))
     macro_file = sys.argv[1]
 
     # Perform checks to verify that XML file is in good format
@@ -73,21 +83,23 @@ if rank == 0:
 
     else:
         gl.killmsg(comm, size, True)
-        raise(ValueError("Specified macro file not in XML format."))
+        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(macro_file))
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
+    print_info("Parsing macro file {} in control dictionaries.".format(macro_file))
     try:
         job_control = x2d.xml2dict(macro_file, config)
 
     except:
         gl.killmsg(comm, size, True)
-        raise RuntimeError("A fatal was encountered while parsing the XML file.")
+        raise RuntimeError(Fore.RED + "A fatal was encountered while parsing the XML file.")
 
     # Split job control dictionary into its three parts: train, attack, cleanup
     train_control = job_control["train"] if "train" in job_control else None
     attack_control = job_control["attack"] if "attack" in job_control else None
     clean_control = job_control["clean"] if "clean" in job_control else None
 
+    print_info("Creating data directories.")
     # Create directory for nodes to log their status if not exist
     os.makedirs("data/.logs", exist_ok=True)
 
@@ -96,14 +108,18 @@ if rank == 0:
 
     # Begin execution the stages for the pipeline. Inform workers they are ready to start!
     gl.killmsg(comm, size, False)
+    print_good("Preprocessing stage complete!")
 
     # Train: launch training stage of the pipeline
     if train_control is not None:
+        print_status("Launching training stage.")
         # Broadcast out to workers that we are now operating on the training stage
         skip.skip_train(comm, size, False)
 
+        print_info("Unwrapping train control dictionary.")
         train_macro_list = unwrap_train(train_control)
 
+        print_info("Converting relative file paths to absolute paths.")
         # Loop through train_macro_list and convert relative paths to absolute paths
         for i in range(0, len(train_macro_list)):
             # Convert to list in order to change elements
@@ -120,6 +136,7 @@ if rank == 0:
             # Convert back to tuple
             train_macro_list[i] = tuple(dataset)
 
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
         # Loop through train_macro_list, creating directories for
         # storing models for each dataset, as well as verifying
         # that each specified dataset does exists
@@ -129,36 +146,43 @@ if rank == 0:
                 gl.killmsg(comm, size, True)
 
                 if os.path.isfile(macro[1]) is False:
-                    raise FileNotFoundError("The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
+                    raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
 
                 else:
-                    raise FileNotFoundError("The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
+                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
 
             # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
         # Create directives for the worker nodes
+        print_info("Generating directive list for worker nodes.")
         train_directive_list = sst.generate_train(train_macro_list)
         sliced_directive_list = sst.slice(train_directive_list, size)
 
         # Broadcast that everything is good to go for the training stage
         gl.killmsg(comm, size, False)
 
+        print_info("Sending tasks to workers.")
         # Send greenlight to workers and then follow up with tasks
         node_rank = sst.delegate(comm, size, sliced_directive_list)
 
+        print_info("Blocking until all workers complete training tasks.")
         # Block until manager hears back from all workers
         node_status = list()
         for node in node_rank:
             node_status.append(comm.recv(source=node, tag=node))
 
+        print_good("Training stage complete!")
+
     else:
+        print_status("Skipping training stage.")
         # Broadcast out to workers that manager is skipping the training stage
         skip.skip_train(comm, size, True)
 
     # Attack: launch attack stage of the pipeline
     if attack_control is not None:
+        print_status("Launching attack stage.")
         # Broadcast out to workers that we are now operating on the attack stage
         skip.skip_attack(comm, size, False)
 
@@ -172,25 +196,41 @@ if rank == 0:
             # Check that dataset exists. If not, raise file not found error
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
-                raise FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path.")
+                raise FileNotFoundError(Fore.RED + "Specified dataset is not found. Please verify that you are using the correct file path.")
 
             # Check if models exist. If not, raise file not found error
             if os.path.exists("data/" + macro[0] + "/models") is False:
-                raise FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
+                raise FileNotFoundError(Fore.RED + "Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
+        print_good("Attack stage complete!")
+
     else:
+        print_status("Skipping attack stage.")
         # Broadcast out to workers that manager is skipping the attack stage
         skip.skip_attack(comm, size, True)
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
+        print_status("Launching cleaning stage.")
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
 
         if clean_control["plot"] is not None:
+            print_info("Checking that file paths to plugin(s) are valid.")
+            # Loop through plot keys and convert relative paths to absolute paths
+            for key in clean_control["plot"]:
+                if os.path.isabs(clean_control["plot"][key]["plugin"]) is False:
+                    clean_control["plot"][key]["plugin"] = os.path.abspath(clean_control["plot"][key]["plugin"])
+
+                # Check if path to the plugin is valid
+                if os.path.isfile(clean_control["plot"][key]["plugin"]) is False:
+                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(
+                        clean_control["plot"][key]["plugin"]))
+
+            print_info("Generating directive list for worker nodes.")
             # Generate and slice directive list that will be sent out to the workers
             clean_directive_list = sst.generate_clean(clean_control["plot"], ROOT_PATH + "/data/plots", ROOT_PATH + "/data")
             sliced_directive_list = sst.slice(clean_directive_list, size)
@@ -198,9 +238,11 @@ if rank == 0:
             # Send greenlight to workers
             gl.killmsg(comm, size, False)
 
+            print_info("Sending tasks to workers.")
             # Delegate tasks out to the available workers in the COMM_WORLD
             node_rank = sst.delegate(comm, size, sliced_directive_list)
 
+            print_info("Blocking until all workers complete plotting tasks.")
             # Block until hearing back from all the worker nodes
             node_status = list()
             for node in node_rank:
@@ -210,10 +252,12 @@ if rank == 0:
             gl.killmsg(comm, size, True)
 
         if clean_control["clean_tmp"] == 1:
+            print_info("Deleting data/.tmp directory.")
             shutil.rmtree("data/.tmp", ignore_errors=True)
 
         if clean_control["compress"] is not None:
             for key in clean_control["compress"]:
+                print_info("Renaming data directory to {} and compressing into format {}.".format(key, clean_control["compress"][key]["format"]))
                 # Create compressor that will be used to shrink the data directory
                 shutil.move("data", key)
                 compressor = Compression(key, key)
@@ -255,8 +299,11 @@ if rank == 0:
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
-                
+
+        print_good("Cleaning stage complete!")
+
     else:
+        print_status("Skipping cleaning stage.")
         # Broadcast out to workers that manager is skipping the cleaning stage
         skip.skip_clean(comm, size, True)
 
