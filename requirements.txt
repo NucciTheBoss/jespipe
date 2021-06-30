@@ -7,3 +7,5 @@ Keras==2.4.3
 lxml==4.6.3
 beautifulsoup4==4.9.3
 scikit_learn==0.24.2
+colorama==0.4.4
+tqdm==4.61.1
