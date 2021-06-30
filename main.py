@@ -271,30 +271,35 @@ if rank == 0:
                 # Create archive based on user-specified compression algorithm
                 if clean_control["compress"][key]["format"] == "gzip":
                     compressor.togzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
                 elif clean_control["compress"][key]["format"] == "bz2":
                     compressor.tobzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.bz2".format(key), "{}/{}.tar.bz2".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "zip":
                     compressor.tozip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.zip".format(key), "{}/{}.zip".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "xz":
                     compressor.toxz()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.xz".format(key), "{}/{}.tar.xz".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "tar":
                     compressor.totar()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar".format(key), "{}/{}.tar".format(clean_control["compress"][key]["path"], key))
@@ -302,6 +307,7 @@ if rank == 0:
                 else:
                     # Catch all for if user passes invalid compression algorithm
                     compressor.togzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
