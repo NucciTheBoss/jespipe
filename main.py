@@ -319,7 +319,7 @@ if rank == 0:
         # Broadcast out to workers that manager is skipping the cleaning stage
         skip.skip_clean(comm, size, True)
 
-    print("All done!")
+    print_good("Jespipe has completed!")
 
 elif rank == 1:
     greenlight = comm.recv(source=0, tag=1)
