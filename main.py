@@ -33,7 +33,7 @@ PYTHON_PATH = subprocess.getoutput("which python")
 if rank == 0:
     # Staging: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
-    from colorama import Fore, init
+    from colorama import Fore, Style, init
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.macro import xml2dict as x2d
@@ -46,6 +46,7 @@ if rank == 0:
     init(autoreset=True)
     print_good = lambda x: print(Fore.GREEN + x)
     print_info = lambda x: print(Fore.BLUE + x)
+    print_dim_info = lambda x: print(Fore.BLUE + Style.DIM + x)
     print_bad = lambda x: print(Fore.RED + x)
     print_status = lambda x: print(Fore.YELLOW + x)
 
@@ -169,6 +170,8 @@ if rank == 0:
         node_rank = sst.delegate(comm, size, sliced_directive_list)
 
         print_info("Blocking until all workers complete training tasks.")
+        print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
+            "on the complexity of your data, architecture of your model(s), number of models to train, etc.")
         # Block until manager hears back from all workers
         node_status = list()
         for node in tqdm(node_rank, desc="Worker node task completion progress"):
@@ -244,6 +247,8 @@ if rank == 0:
             node_rank = sst.delegate(comm, size, sliced_directive_list)
 
             print_info("Blocking until all workers complete plotting tasks.")
+            print_dim_info("Warning: This procedure may take some time to complete depending on how many plots are being generated, " +
+                "complexity of the data being anaylzed, format of the plot, etc.")
             # Block until hearing back from all the worker nodes
             node_status = list()
             for node in tqdm(node_rank, desc="Worker node task completion progress"):
