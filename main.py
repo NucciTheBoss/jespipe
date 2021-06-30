@@ -4,6 +4,7 @@ import sys
 import warnings
 import re
 import os
+from tqdm import tqdm
 import shutil
 import time
 import logging
@@ -12,9 +13,11 @@ from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
 from utils.workerops.paramfactory import paramfactory
 
+
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
+
 
 # Global values to be shared across all nodes
 comm = MPI.COMM_WORLD
@@ -30,6 +33,7 @@ PYTHON_PATH = subprocess.getoutput("which python")
 if rank == 0:
     # Staging: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
+    from colorama import Fore, Style, init
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.macro import xml2dict as x2d
@@ -37,23 +41,42 @@ if rank == 0:
     from utils.workerops import scattershot as sst
     from utils.managerops.compress import Compression
 
+    
+    # Initialize colorama and define lambda functions
+    init(autoreset=True)
+    print_good = lambda x: print(Fore.GREEN + x)
+    print_info = lambda x: print(Fore.BLUE + x)
+    print_dim_info = lambda x: print(Fore.BLUE + Style.DIM + x)
+    print_bad = lambda x: print(Fore.RED + x)
+    print_status = lambda x: print(Fore.YELLOW + x)
 
+
+    print_status("Launching preprocessing stage.")
     # Check if we are working in the same directory as main.py.
     # If not, throw error as that will impact the pipelines ability to run.
+    print_info("Checking if running out of same directory as {}".format(sys.argv[0]))
     cwd_contents = [f for f in os.listdir(".") if os.path.isfile(f)]
     if sys.argv[0] not in cwd_contents:
         gl.killmsg(comm, size, True)
-        raise OSError("Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
+        raise OSError(Fore.RED + "Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
 
     # Read in config to get default configurations file
-    fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
-    config = json.loads(config)
+    print_info("Loading configuration file {}.".format(CONFIG_FILE))
+    try:
+        fin = open(CONFIG_FILE, "rt"); config = fin.read(); fin.close()
+        config = json.loads(config)
+    
+    except:
+        gl.killmsg(comm, size, True)
+        raise OSError(Fore.RED + "Cannot find or read {}. Please veify that {} exists and is readable.".format(CONFIG_FILE, CONFIG_FILE))
 
     # Read in marco XML file
+    print_info("Checking if macro XML file passed at command line.")
     if len(sys.argv) != 2:
         gl.killmsg(comm, size, True)
-        raise ValueError("No macro XML file specified before launching pipeline.")
+        raise ValueError(Fore.RED + "No macro XML file specified before launching pipeline.")
 
+    print_info("Loading macro XML file {}.".format(sys.argv[1]))
     macro_file = sys.argv[1]
 
     # Perform checks to verify that XML file is in good format
@@ -62,21 +85,23 @@ if rank == 0:
 
     else:
         gl.killmsg(comm, size, True)
-        raise(ValueError("Specified macro file not in XML format."))
+        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(macro_file))
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
+    print_info("Parsing macro file {} in control dictionaries.".format(macro_file))
     try:
         job_control = x2d.xml2dict(macro_file, config)
 
     except:
         gl.killmsg(comm, size, True)
-        raise RuntimeError("A fatal was encountered while parsing the XML file.")
+        raise RuntimeError(Fore.RED + "A fatal was encountered while parsing the XML file.")
 
     # Split job control dictionary into its three parts: train, attack, cleanup
     train_control = job_control["train"] if "train" in job_control else None
     attack_control = job_control["attack"] if "attack" in job_control else None
     clean_control = job_control["clean"] if "clean" in job_control else None
 
+    print_info("Creating data directories.")
     # Create directory for nodes to log their status if not exist
     os.makedirs("data/.logs", exist_ok=True)
 
@@ -85,14 +110,18 @@ if rank == 0:
 
     # Begin execution the stages for the pipeline. Inform workers they are ready to start!
     gl.killmsg(comm, size, False)
+    print_good("Preprocessing stage complete!")
 
     # Train: launch training stage of the pipeline
     if train_control is not None:
+        print_status("Launching training stage.")
         # Broadcast out to workers that we are now operating on the training stage
         skip.skip_train(comm, size, False)
 
+        print_info("Unwrapping train control dictionary.")
         train_macro_list = unwrap_train(train_control)
 
+        print_info("Converting relative file paths to absolute paths.")
         # Loop through train_macro_list and convert relative paths to absolute paths
         for i in range(0, len(train_macro_list)):
             # Convert to list in order to change elements
@@ -109,6 +138,7 @@ if rank == 0:
             # Convert back to tuple
             train_macro_list[i] = tuple(dataset)
 
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
         # Loop through train_macro_list, creating directories for
         # storing models for each dataset, as well as verifying
         # that each specified dataset does exists
@@ -118,36 +148,45 @@ if rank == 0:
                 gl.killmsg(comm, size, True)
 
                 if os.path.isfile(macro[1]) is False:
-                    raise FileNotFoundError("The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
+                    raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
 
                 else:
-                    raise FileNotFoundError("The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
+                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
 
             # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
         # Create directives for the worker nodes
+        print_info("Generating directive list for worker nodes.")
         train_directive_list = sst.generate_train(train_macro_list)
         sliced_directive_list = sst.slice(train_directive_list, size)
 
         # Broadcast that everything is good to go for the training stage
         gl.killmsg(comm, size, False)
 
+        print_info("Sending tasks to workers.")
         # Send greenlight to workers and then follow up with tasks
         node_rank = sst.delegate(comm, size, sliced_directive_list)
 
+        print_info("Blocking until all workers complete training tasks.")
+        print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
+            "on the complexity of your data, architecture of your model(s), number of models to train, etc.")
         # Block until manager hears back from all workers
         node_status = list()
-        for node in node_rank:
+        for node in tqdm(node_rank, desc="Worker node task completion progress"):
             node_status.append(comm.recv(source=node, tag=node))
 
+        print_good("Training stage complete!")
+
     else:
+        print_status("Skipping training stage.")
         # Broadcast out to workers that manager is skipping the training stage
         skip.skip_train(comm, size, True)
 
     # Attack: launch attack stage of the pipeline
     if attack_control is not None:
+        print_status("Launching attack stage.")
         # Broadcast out to workers that we are now operating on the attack stage
         skip.skip_attack(comm, size, False)
 
@@ -161,25 +200,41 @@ if rank == 0:
             # Check that dataset exists. If not, raise file not found error
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
-                raise FileNotFoundError("Specified dataset is not found. Please verify that you are using the correct file path.")
+                raise FileNotFoundError(Fore.RED + "Specified dataset is not found. Please verify that you are using the correct file path.")
 
             # Check if models exist. If not, raise file not found error
             if os.path.exists("data/" + macro[0] + "/models") is False:
-                raise FileNotFoundError("Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
+                raise FileNotFoundError(Fore.RED + "Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
+        print_good("Attack stage complete!")
+
     else:
+        print_status("Skipping attack stage.")
         # Broadcast out to workers that manager is skipping the attack stage
         skip.skip_attack(comm, size, True)
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
+        print_status("Launching cleaning stage.")
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
 
         if clean_control["plot"] is not None:
+            print_info("Checking that file paths to plugin(s) are valid.")
+            # Loop through plot keys and convert relative paths to absolute paths
+            for key in clean_control["plot"]:
+                if os.path.isabs(clean_control["plot"][key]["plugin"]) is False:
+                    clean_control["plot"][key]["plugin"] = os.path.abspath(clean_control["plot"][key]["plugin"])
+
+                # Check if path to the plugin is valid
+                if os.path.isfile(clean_control["plot"][key]["plugin"]) is False:
+                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(
+                        clean_control["plot"][key]["plugin"]))
+
+            print_info("Generating directive list for worker nodes.")
             # Generate and slice directive list that will be sent out to the workers
             clean_directive_list = sst.generate_clean(clean_control["plot"], ROOT_PATH + "/data/plots", ROOT_PATH + "/data")
             sliced_directive_list = sst.slice(clean_directive_list, size)
@@ -187,22 +242,28 @@ if rank == 0:
             # Send greenlight to workers
             gl.killmsg(comm, size, False)
 
+            print_info("Sending tasks to workers.")
             # Delegate tasks out to the available workers in the COMM_WORLD
             node_rank = sst.delegate(comm, size, sliced_directive_list)
 
+            print_info("Blocking until all workers complete plotting tasks.")
+            print_dim_info("Warning: This procedure may take some time to complete depending on how many plots are being generated, " +
+                "complexity of the data being anaylzed, format of the plot, etc.")
             # Block until hearing back from all the worker nodes
             node_status = list()
-            for node in node_rank:
+            for node in tqdm(node_rank, desc="Worker node task completion progress"):
                 node_status.append(comm.recv(source=node, tag=node))
 
         else:
             gl.killmsg(comm, size, True)
 
         if clean_control["clean_tmp"] == 1:
+            print_info("Deleting data/.tmp directory.")
             shutil.rmtree("data/.tmp", ignore_errors=True)
 
         if clean_control["compress"] is not None:
             for key in clean_control["compress"]:
+                print_info("Renaming data directory to {} and compressing into format {}.".format(key, clean_control["compress"][key]["format"]))
                 # Create compressor that will be used to shrink the data directory
                 shutil.move("data", key)
                 compressor = Compression(key, key)
@@ -210,30 +271,35 @@ if rank == 0:
                 # Create archive based on user-specified compression algorithm
                 if clean_control["compress"][key]["format"] == "gzip":
                     compressor.togzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
                 elif clean_control["compress"][key]["format"] == "bz2":
                     compressor.tobzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.bz2".format(key), "{}/{}.tar.bz2".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "zip":
                     compressor.tozip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.zip".format(key), "{}/{}.zip".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "xz":
                     compressor.toxz()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.xz".format(key), "{}/{}.tar.xz".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "tar":
                     compressor.totar()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar".format(key), "{}/{}.tar".format(clean_control["compress"][key]["path"], key))
@@ -241,15 +307,19 @@ if rank == 0:
                 else:
                     # Catch all for if user passes invalid compression algorithm
                     compressor.togzip()
+                    shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
-                
+
+        print_good("Cleaning stage complete!")
+
     else:
+        print_status("Skipping cleaning stage.")
         # Broadcast out to workers that manager is skipping the cleaning stage
         skip.skip_clean(comm, size, True)
 
-    print("All done!")
+    print_good("Jespipe has completed!")
 
 elif rank == 1:
     greenlight = comm.recv(source=0, tag=1)
@@ -309,10 +379,11 @@ elif rank == 1:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-1/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -425,10 +496,11 @@ elif rank == 2:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-2/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -541,10 +613,11 @@ elif rank == 3:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-3/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -657,10 +730,11 @@ elif rank == 4:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-4/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -773,10 +847,11 @@ elif rank == 5:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-5/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -889,10 +964,11 @@ elif rank == 6:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-6/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
@@ -1005,10 +1081,11 @@ elif rank == 7:
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
-                logger.warning("\n--- Output of {} for model {} using manipulation {} with parameters {} ---\n".format(task[5], task[2], task[6], task[8]))
+                file_output = "data/.logs/worker-7/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
                 # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(f_handler.stream.name, "at")
+                fout = open(file_output, "wt")
 
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
