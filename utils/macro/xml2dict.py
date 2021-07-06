@@ -233,7 +233,6 @@ def xml2dict(xml_file, config_file):
                     d["attack"][data_name][attack] = None
 
     # Parse clean tag; skip if not specified in XML file
-    print(clean)
     if clean != []:
         d["clean"] = dict()
         clean_config = config_file["clean"]
