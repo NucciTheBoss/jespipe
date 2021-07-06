@@ -128,12 +128,3 @@ def unwrap_attack(attack_dict):
         root.append(root_tuple)
 
     return root
-
-
-# TODO: Can write this function once I discover what Sheila wants me to do with clean stage
-# def unwrap_clean(clean_dict):
-#     """Convert clean job control dictionary to workable tuple.
-    
-#     Keyword arguments:
-#     clean_dict -- clean job dictionary to convert to a workable tuple."""
-#     pass
