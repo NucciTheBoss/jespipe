@@ -42,7 +42,7 @@
         <dataset file="/path/to/some/file.csv">
             <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
                 <max_change>0.2</max_change>
-                <min_change>0.05</min_chnage>
+                <min_change>0.05</min_change>
                 <change_step>0.025</change_step>
                 <learning_rate>0.001</learning_rate>
                 <max_iter>100</max_iter>

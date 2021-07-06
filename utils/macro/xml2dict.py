@@ -202,10 +202,38 @@ def xml2dict(xml_file, config_file):
             d["attack"][data_name] = dict()
             d["attack"][data_name].update({"path": data_path})
 
-            # Pull all the attack tags
-            
+            # Pull all the attack tags from the config dictionary
+            key_list = [k for k in config_file["attacks"]]
+
+            # Loop through all available attacks to see if they are in the macro file
+            for attack in key_list:
+                current_attacks = dataset.find_all(attack)
+
+                if current_attacks != []:
+                    # Pull config dictionary
+                    attack_config = config_file["attacks"][attack]
+                    d["attack"][data_name][attack] = dict()
+
+                    for current_attack in current_attacks:
+                        # Create deepcopy of current attack config
+                        tmp_dict = copy.deepcopy(attack_config)
+
+                        for param in attack_config:
+                            feat = current_attack.find(param)
+                            if feat is not None:
+                                feat = feat.text
+                                tmp_dict.update({param: feat})
+
+                        d["attack"][data_name][attack][current_attack["tag"]] = dict()
+                        d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = current_attack["plugin"]
+                        d["attack"][data_name][attack][current_attack["tag"]]["model_plugin"] = current_attack["model_plugin"]
+                        d["attack"][data_name][attack][current_attack["tag"]]["params"] = tmp_dict
+
+                else:
+                    d["attack"][data_name][attack] = None
 
     # Parse clean tag; skip if not specified in XML file
+    print(clean)
     if clean != []:
         d["clean"] = dict()
         clean_config = config_file["clean"]

@@ -197,6 +197,7 @@ if rank == 0:
         # that each specified dataset does exists. Also, checks to see if the
         # models exist as well
         for macro in attack_macro_list:
+            
             # Check that dataset exists. If not, raise file not found error
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
@@ -204,11 +205,13 @@ if rank == 0:
 
             # Check if models exist. If not, raise file not found error
             if os.path.exists("data/" + macro[0] + "/models") is False:
+                gl.killmsg(comm, size, True)
                 raise FileNotFoundError(Fore.RED + "Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
+        gl.killmsg(comm, size, False)
         print_good("Attack stage complete!")
 
     else:
@@ -218,6 +221,7 @@ if rank == 0:
 
     # Clean: launch cleaning stage of the pipeline
     if clean_control is not None:
+        print(clean_control)
         print_status("Launching cleaning stage.")
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
@@ -407,7 +411,14 @@ elif rank == 1:
     skip_stage_attack = comm.recv(source=0, tag=1)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -524,7 +535,14 @@ elif rank == 2:
     skip_stage_attack = comm.recv(source=0, tag=2)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -641,7 +659,14 @@ elif rank == 3:
     skip_stage_attack = comm.recv(source=0, tag=3)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -758,7 +783,14 @@ elif rank == 4:
     skip_stage_attack = comm.recv(source=0, tag=4)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -875,7 +907,14 @@ elif rank == 5:
     skip_stage_attack = comm.recv(source=0, tag=5)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -992,7 +1031,14 @@ elif rank == 6:
     skip_stage_attack = comm.recv(source=0, tag=6)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -1109,7 +1155,14 @@ elif rank == 7:
     skip_stage_attack = comm.recv(source=0, tag=7)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
