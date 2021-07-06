@@ -39,6 +39,7 @@ if rank == 0:
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
+    from utils.managerops.getpaths import getmodels
     from utils.managerops.compress import Compression
 
     
@@ -122,38 +123,36 @@ if rank == 0:
         train_macro_list = unwrap_train(train_control)
 
         print_info("Converting relative file paths to absolute paths.")
-        # Loop through train_macro_list and convert relative paths to absolute paths
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
+        # Loop through train_macro_list:
+        # - Convert relative paths to absolute paths
+        # - Verify path to dataset and plugin exists
+        # - Create directory for each dataset
         for i in range(0, len(train_macro_list)):
             # Convert to list in order to change elements
-            dataset = list(train_macro_list[i])
+            macro = list(train_macro_list[i])
 
             # Check if path to dataset is absolute
-            if os.path.isabs(dataset[1]) is False:
-                dataset[1] = os.path.abspath(dataset[1])
+            if os.path.isabs(macro[1]) is False:
+                macro[1] = os.path.abspath(macro[1])
+
+            # Check if dataset exists
+            if os.path.isfile(macro[1]) is False:
+                gl.killmsg(comm, size, True)
+                raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1])) 
 
             # Check if path to plugin is absolute
-            if os.path.isabs(dataset[5]) is False:
-                dataset[5] = os.path.abspath(dataset[5])
+            if os.path.isabs(macro[5]) is False:
+                macro[5] = os.path.abspath(macro[5])
+
+            # Check if plugin exists
+            if os.path.isfile(macro[5]) is False:
+                gl.killmsg(comm, size, True)
+                raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
 
             # Convert back to tuple
-            train_macro_list[i] = tuple(dataset)
+            train_macro_list[i] = tuple(macro)
 
-        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
-        # Loop through train_macro_list, creating directories for
-        # storing models for each dataset, as well as verifying
-        # that each specified dataset does exists
-        for macro in train_macro_list:
-            # Check that the dataset and plugin exist. If not, raise file not found error
-            if os.path.isfile(macro[1]) is False or os.path.isfile(macro[5]) is False:
-                gl.killmsg(comm, size, True)
-
-                if os.path.isfile(macro[1]) is False:
-                    raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
-
-                else:
-                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
-
-            # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
@@ -172,6 +171,7 @@ if rank == 0:
         print_info("Blocking until all workers complete training tasks.")
         print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
             "on the complexity of your data, architecture of your model(s), number of models to train, etc.")
+        
         # Block until manager hears back from all workers
         node_status = list()
         for node in tqdm(node_rank, desc="Worker node task completion progress"):
@@ -192,21 +192,53 @@ if rank == 0:
 
         attack_macro_list = unwrap_attack(attack_control)
 
-        # Loop through attack_macro_list, creating directories for
-        # storing adversarial examples for each dataset, as well as verifying
-        # that each specified dataset does exists. Also, checks to see if the
-        # models exist as well
-        for macro in attack_macro_list:
-            
-            # Check that dataset exists. If not, raise file not found error
+        # Loop through attack_macro_list:
+        # - Convert relative paths to absolute paths
+        # - Verify that trained models exist (use autodetection)
+        # - Verify that mentioned dataset and plugins exist
+        print_info("Converting relative file paths to absolute paths.")
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
+        for i in range(0, len(attack_macro_list)):
+            # Convert to list in order to change elements
+            macro = list(attack_macro_list[i])
+
+            # Convert dataset path to absolute path
+            if os.path.isabs(macro[1]) is False:
+                macro[1] = os.path.abspath(macro[1])
+
+            # Check that dataset exists
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
-                raise FileNotFoundError(Fore.RED + "Specified dataset is not found. Please verify that you are using the correct file path.")
+                raise FileNotFoundError(Fore.RED + "Specified dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
 
-            # Check if models exist. If not, raise file not found error
+            # Convert plugin and model plugin to absolute paths and check that they exist
+            for attack in macro[2]:
+                attack_params = [k for k in attack[1]]
+                for param in attack_params:
+                    if os.path.isabs(attack[1][param]["plugin"]) is False:
+                        attack[1][param]["plugin"] = os.path.abspath(attack[1][param]["plugin"])
+
+                    if os.path.isfile(attack[1][param]["plugin"]) is False:
+                        gl.killmsg(comm, size, True)
+                        raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(attack[1][param]["plugin"]))
+
+                    if os.path.isabs(attack[1][param]["model_plugin"]) is False:
+                        attack[1][param]["model_plugin"] = os.path.abspath(attack[1][param]["model_plugin"])
+
+                    if os.path.isfile(attack[1][param]["model_plugin"]) is False:
+                        gl.killmsg(comm, size, True)
+                        raise FileNotFoundError(Fore.RED + "The model plugin {} is not found. Please verify that you are using the correct file path.".format(attack[1][param]["model_plugin"]))
+
+            # Check if models exist
             if os.path.exists("data/" + macro[0] + "/models") is False:
                 gl.killmsg(comm, size, True)
                 raise FileNotFoundError(Fore.RED + "Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
+
+            # If models do exist, autodetect the .h5 files and add to macro list
+            model_list = getmodels("data/" + macro[0] + "/models", format=".h5")
+            macro.append(model_list)
+
+            attack_macro_list[i] = tuple(macro)
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)

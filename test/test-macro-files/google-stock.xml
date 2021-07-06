@@ -2,7 +2,7 @@
 <simu>
     <train>
         <dataset file="test/datasets/google-stock/google-clean.csv">
-            <model plugin="plugins/LSTM/LSTM.py">
+            <model plugin="plugins/models/RNN/LSTM.py">
                 <name>google-stock-LSTM</name>
 
                 <algorithm>LSTM</algorithm>
