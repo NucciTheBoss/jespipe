@@ -2,7 +2,7 @@
 <simu>
     <train>
         <dataset file="test/datasets/google-stock-xgb/xgb1.csv">
-            <model plugin="plugins/LSTM/LSTM.py">
+            <model plugin="plugins/models/RNN/LSTM.py">
                 <name>barebones_model</name>
 
                 <algorithm>LSTM</algorithm>

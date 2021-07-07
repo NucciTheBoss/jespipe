@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- IMPORTANT: THIS XML FILE IS A LEGACY FILE -->
 <!-- CORE NOTES:
      Forbidden characters in text nodes: &, <, >, ', " 
         BeautifulSoup can handle these characters if they are present in

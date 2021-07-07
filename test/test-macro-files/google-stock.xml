@@ -2,7 +2,7 @@
 <simu>
     <train>
         <dataset file="test/datasets/google-stock/google-clean.csv">
-            <model plugin="plugins/LSTM/LSTM.py">
+            <model plugin="plugins/models/RNN/LSTM.py">
                 <name>google-stock-LSTM</name>
 
                 <algorithm>LSTM</algorithm>
@@ -31,43 +31,5 @@
                 </candlestick>
             </model>
         </dataset>
-
     </train>
-    <attack>
-        <dataset file="test/datasets/google-stock/google-clean.csv">
-            <cw_inf tag="cw_inf1">
-                <confidence>0.0</confidence>
-                <targeted>0</targeted>
-                <learning_rate>0.01</learning_rate>
-                <max_iter>10</max_iter>
-                <max_halving>5</max_halving>
-                <max_doubling>5</max_doubling>
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <batch_size>128</batch_size>
-                <verbose>1</verbose>
-            </cw_inf>
-
-            <bim tag="bim1">
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <targeted>0</targeted>
-                <batch_size>32</batch_size>
-                <verbose>1</verbose>
-            </bim>
-
-            <fgsm tag="fgsm1">
-                <norm>inf</norm>
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <targeted>0</targeted>
-                <num_random_int>0</num_random_int>
-                <batch_size>32</batch_size>
-                <minimal>0</minimal>
-            </fgsm>
-        </dataset>
-    </attack>
- 
-    <clean>
-    </clean>
 </simu>

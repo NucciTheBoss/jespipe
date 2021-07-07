@@ -31,7 +31,7 @@ PYTHON_PATH = subprocess.getoutput("which python")
 
 
 if rank == 0:
-    # Staging: neccesary preprocessing before beginning the execution of the pipeline
+    # PREPROCESSING: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
     from colorama import Fore, Style, init
     from utils.workeradmin import greenlight as gl
@@ -39,6 +39,7 @@ if rank == 0:
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
+    from utils.managerops.getpaths import getmodels
     from utils.managerops.compress import Compression
 
     
@@ -112,7 +113,7 @@ if rank == 0:
     gl.killmsg(comm, size, False)
     print_good("Preprocessing stage complete!")
 
-    # Train: launch training stage of the pipeline
+    # TRAIN: launch training stage of the pipeline
     if train_control is not None:
         print_status("Launching training stage.")
         # Broadcast out to workers that we are now operating on the training stage
@@ -122,38 +123,36 @@ if rank == 0:
         train_macro_list = unwrap_train(train_control)
 
         print_info("Converting relative file paths to absolute paths.")
-        # Loop through train_macro_list and convert relative paths to absolute paths
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
+        # Loop through train_macro_list:
+        # - Convert relative paths to absolute paths
+        # - Verify path to dataset and plugin exists
+        # - Create directory for each dataset
         for i in range(0, len(train_macro_list)):
             # Convert to list in order to change elements
-            dataset = list(train_macro_list[i])
+            macro = list(train_macro_list[i])
 
             # Check if path to dataset is absolute
-            if os.path.isabs(dataset[1]) is False:
-                dataset[1] = os.path.abspath(dataset[1])
+            if os.path.isabs(macro[1]) is False:
+                macro[1] = os.path.abspath(macro[1])
+
+            # Check if dataset exists
+            if os.path.isfile(macro[1]) is False:
+                gl.killmsg(comm, size, True)
+                raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1])) 
 
             # Check if path to plugin is absolute
-            if os.path.isabs(dataset[5]) is False:
-                dataset[5] = os.path.abspath(dataset[5])
+            if os.path.isabs(macro[5]) is False:
+                macro[5] = os.path.abspath(macro[5])
+
+            # Check if plugin exists
+            if os.path.isfile(macro[5]) is False:
+                gl.killmsg(comm, size, True)
+                raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
 
             # Convert back to tuple
-            train_macro_list[i] = tuple(dataset)
+            train_macro_list[i] = tuple(macro)
 
-        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
-        # Loop through train_macro_list, creating directories for
-        # storing models for each dataset, as well as verifying
-        # that each specified dataset does exists
-        for macro in train_macro_list:
-            # Check that the dataset and plugin exist. If not, raise file not found error
-            if os.path.isfile(macro[1]) is False or os.path.isfile(macro[5]) is False:
-                gl.killmsg(comm, size, True)
-
-                if os.path.isfile(macro[1]) is False:
-                    raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
-
-                else:
-                    raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
-
-            # If the dataset and plugin are verified to exist, create necessary directories
             # Create data/$dataset_name/models <- where trained models are stored
             os.makedirs("data/" + macro[0] + "/models", exist_ok=True)
 
@@ -172,6 +171,7 @@ if rank == 0:
         print_info("Blocking until all workers complete training tasks.")
         print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
             "on the complexity of your data, architecture of your model(s), number of models to train, etc.")
+        
         # Block until manager hears back from all workers
         node_status = list()
         for node in tqdm(node_rank, desc="Worker node task completion progress"):
@@ -184,7 +184,7 @@ if rank == 0:
         # Broadcast out to workers that manager is skipping the training stage
         skip.skip_train(comm, size, True)
 
-    # Attack: launch attack stage of the pipeline
+    # ATTACK: launch attack stage of the pipeline
     if attack_control is not None:
         print_status("Launching attack stage.")
         # Broadcast out to workers that we are now operating on the attack stage
@@ -192,22 +192,79 @@ if rank == 0:
 
         attack_macro_list = unwrap_attack(attack_control)
 
-        # Loop through attack_macro_list, creating directories for
-        # storing adversarial examples for each dataset, as well as verifying
-        # that each specified dataset does exists. Also, checks to see if the
-        # models exist as well
-        for macro in attack_macro_list:
-            # Check that dataset exists. If not, raise file not found error
+        # Loop through attack_macro_list:
+        # - Convert relative paths to absolute paths
+        # - Verify that trained models exist (use autodetection)
+        # - Verify that mentioned dataset and plugins exist
+        print_info("Converting relative file paths to absolute paths.")
+        print_info("Checking that file paths to dataset(s) and plugin(s) are valid.")
+        for i in range(0, len(attack_macro_list)):
+            # Convert to list in order to change elements
+            macro = list(attack_macro_list[i])
+
+            # Convert dataset path to absolute path
+            if os.path.isabs(macro[1]) is False:
+                macro[1] = os.path.abspath(macro[1])
+
+            # Check that dataset exists
             if os.path.isfile(macro[1]) is False:
                 gl.killmsg(comm, size, True)
-                raise FileNotFoundError(Fore.RED + "Specified dataset is not found. Please verify that you are using the correct file path.")
+                raise FileNotFoundError(Fore.RED + "Specified dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1]))
 
-            # Check if models exist. If not, raise file not found error
+            # Convert plugin and model plugin to absolute paths and check that they exist
+            for attack in macro[2]:
+                if attack[1] is not None:
+                    attack_params = [k for k in attack[1]]
+                    for param in attack_params:
+                        if os.path.isabs(attack[1][param]["plugin"]) is False:
+                            attack[1][param]["plugin"] = os.path.abspath(attack[1][param]["plugin"])
+
+                        if os.path.isfile(attack[1][param]["plugin"]) is False:
+                            gl.killmsg(comm, size, True)
+                            raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(attack[1][param]["plugin"]))
+
+                        if os.path.isabs(attack[1][param]["model_plugin"]) is False:
+                            attack[1][param]["model_plugin"] = os.path.abspath(attack[1][param]["model_plugin"])
+
+                        if os.path.isfile(attack[1][param]["model_plugin"]) is False:
+                            gl.killmsg(comm, size, True)
+                            raise FileNotFoundError(Fore.RED + "The model plugin {} is not found. Please verify that you are using the correct file path.".format(attack[1][param]["model_plugin"]))
+
+            # Check if models exist
             if os.path.exists("data/" + macro[0] + "/models") is False:
+                gl.killmsg(comm, size, True)
                 raise FileNotFoundError(Fore.RED + "Model(s) not found. Please verify that models are stored in data/{}/models.".format(macro[0]))
+
+            # If models do exist, autodetect the .h5 files and add to macro list
+            print_info("Auto-detecting models for dataset {}.".format(macro[0]))
+            model_list = getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
+            macro.append(model_list)
+
+            attack_macro_list[i] = tuple(macro)
 
             # Once all checks are good, create directory for storing adversarial examples
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
+
+        # Create directives for the worker nodes
+        print_info("Generating directive list for worker nodes.")
+        attack_directive_list = sst.generate_attack(attack_macro_list)
+        sliced_directive_list = sst.slice(attack_directive_list, size)
+        
+        # Broadcast that everything is good to go to the worker nodes
+        gl.killmsg(comm, size, False)
+
+        print_info("Sending tasks to workers.")
+        # Follow greenlight up with task list
+        node_rank = sst.delegate(comm, size, sliced_directive_list)
+
+        print_info("Blocking until all workers complete attack tasks.")
+        print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
+            "on the complexity of your attack, batch size of your attack, number of attacks, etc.")
+        
+        # Block until manager hears back from all workers
+        node_status = list()
+        for node in tqdm(node_rank, desc="Worker node task completion progress"):
+            node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Attack stage complete!")
 
@@ -216,7 +273,7 @@ if rank == 0:
         # Broadcast out to workers that manager is skipping the attack stage
         skip.skip_attack(comm, size, True)
 
-    # Clean: launch cleaning stage of the pipeline
+    # CLEAN: launch cleaning stage of the pipeline
     if clean_control is not None:
         print_status("Launching cleaning stage.")
         # Broadcast out to workers that we are now operating on the cleaning stage
@@ -407,7 +464,25 @@ elif rank == 1:
     skip_stage_attack = comm.recv(source=0, tag=1)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=1)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=1)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=1)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=1)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -524,7 +599,25 @@ elif rank == 2:
     skip_stage_attack = comm.recv(source=0, tag=2)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=2)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=2)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=2)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=2)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -641,7 +734,25 @@ elif rank == 3:
     skip_stage_attack = comm.recv(source=0, tag=3)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=3)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=3)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=3)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=3)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -758,7 +869,25 @@ elif rank == 4:
     skip_stage_attack = comm.recv(source=0, tag=4)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=4)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=4)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=4)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=4)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -875,7 +1004,25 @@ elif rank == 5:
     skip_stage_attack = comm.recv(source=0, tag=5)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=5)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=5)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=5)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=5)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -992,7 +1139,25 @@ elif rank == 6:
     skip_stage_attack = comm.recv(source=0, tag=6)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=6)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=6)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=6)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=6)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -1109,7 +1274,25 @@ elif rank == 7:
     skip_stage_attack = comm.recv(source=0, tag=7)
 
     if skip_stage_attack != 1:
-        pass
+        logger.warning("INFO: Waiting for greenlight to start attack stage.")
+        
+        attack_greenlight = comm.recv(source=0, tag=7)
+        if attack_greenlight != 1:
+            logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
+            exit(127)
+
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=7)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=7)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=7)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")

@@ -40,36 +40,18 @@
     </train>
     <attack>
         <dataset file="/path/to/some/file.csv">
-            <cw_inf tag="cw_inf1">
-                <confidence>0.0</confidence>
-                <targeted>0</targeted>
-                <learning_rate>0.01</learning_rate>
-                <max_iter>10</max_iter>
-                <max_halving>5</max_halving>
-                <max_doubling>5</max_doubling>
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <batch_size>128</batch_size>
-                <verbose>1</verbose>
-            </cw_inf>
-
-            <bim tag="bim1">
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <targeted>0</targeted>
-                <batch_size>32</batch_size>
-                <verbose>1</verbose>
-            </bim>
-
-            <fgsm tag="fgsm1">
-                <norm>inf</norm>
-                <max_eps>0.3</max_eps>
-                <eps_step>0.1</eps_step>
-                <targeted>0</targeted>
-                <num_random_int>0</num_random_int>
-                <batch_size>32</batch_size>
-                <minimal>0</minimal>
-            </fgsm>
+            <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
+                <max_change>0.2</max_change>
+                <min_change>0.05</min_change>
+                <change_step>0.025</change_step>
+                <learning_rate>0.001</learning_rate>
+                <max_iter>100</max_iter>
+                <binary_search_steps>9</binary_search_steps>
+                <batch_size>20</batch_size>
+                <initial_cost>1</initial_cost>
+                <sequence_length>60</sequence_length>
+                <verbose>True</verbose>
+            </CW_L2>
         </dataset>
     </attack>
  

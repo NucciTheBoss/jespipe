@@ -68,9 +68,6 @@ def unwrap_train(train_dict):
                     manip_tuple += (tmp_submanip_list,)
                     manip_list.append(manip_tuple)
 
-                else:
-                    continue
-
             if manip_list != []:
                 root_tuple += (manip_list,)
 
@@ -86,7 +83,10 @@ def unwrap_attack(attack_dict):
     """Convert attack job control dictionary to workable tuple.
     
     Keyword arguments:
-    attack_dict -- attack job control dictionary to convert to workable tuple."""
+    attack_dict -- attack job control dictionary to convert to workable tuple.
+    
+    Returned format:
+    (dataset_name, dataset_path, [(attack, {attack_tag: params})])"""
     # Create empty list that will eventually be returned to main.py
     root = list()
 
@@ -115,9 +115,6 @@ def unwrap_attack(attack_dict):
         for attack in tmp_list:
             if None in attack:
                 attack_list.remove(attack)
-
-            else:
-                continue
 
         if attack_list != []:    
             root_tuple = dataset_name + dataset_path + (attack_list,)
