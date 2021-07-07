@@ -54,22 +54,29 @@ def generate_attack(macro_list):
         dataset_name = directive[0]
         dataset_path = directive[1]
 
-        # Grab attack list and iterate over each attack
-        attack_type_list = directive[2]
+        # Get attack name and tag
+        for attack in directive[2]:
+            attack_name = attack[0]
 
-        if attack_type_list is not None:
-            for attack_type in attack_type_list:
-                # Grab attack type: eg. CW_inf, BIM, FGSM
-                attack_type_name = attack_type[0]
+            if attack[1] is not None:
+                attack_tags = [k for k in attack[1]]
+                for attack_tag in attack_tags:
+                    attack_plugin = attack[1][attack_tag]["plugin"]
+                    model_plugin = attack[1][attack_tag]["model_plugin"]
+                    params = attack[1][attack_tag]["params"]
 
-                # Grab list of attack names and parameters
-                attack_list = attack_type[1]
-                for attack in attack_list:
-                    # Create directive tuple and add to root list
-                    root.append((dataset_name, dataset_path, attack_type_name, attack[0], attack[1]))
+                    # Loop through each model and then append to root list
+                    if directive[3] != []:
+                        for model in directive[3]:
+                            # Grab model root path (use this to find test features and test labels)
+                            model_root = model.strip("/"); del model_root[-1]; model_root = "/" + "/".join(model_root)
+                            root.append((dataset_name, dataset_path, attack_name, attack_tag, attack_plugin, model_plugin, params, model, model_root))
 
-        else:
-             root.append((dataset_name, dataset_path, None, None, None))
+                    else:
+                        root.append((dataset_name, dataset_path, attack_name, attack_tag, attack_plugin, model_plugin, params, None, None))
+
+            else:
+                root.append((dataset_name, dataset_path, attack_name, None, None, None, None, None, None))
 
     return root
 
