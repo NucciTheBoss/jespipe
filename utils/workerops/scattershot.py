@@ -69,7 +69,7 @@ def generate_attack(macro_list):
                     if directive[3] != []:
                         for model in directive[3]:
                             # Grab model root path (use this to find test features and test labels)
-                            model_root = model.strip("/"); del model_root[-1]; model_root = "/" + "/".join(model_root)
+                            model_root = model.split("/"); del model_root[-1]; model_root = "/".join(model_root)
                             root.append((dataset_name, dataset_path, attack_name, attack_tag, attack_plugin, model_plugin, params, model, model_root))
 
                     else:

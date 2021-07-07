@@ -237,7 +237,7 @@ if rank == 0:
 
             # If models do exist, autodetect the .h5 files and add to macro list
             print_info("Auto-detecting models for dataset {}.".format(macro[0]))
-            model_list = getmodels("data/" + macro[0] + "/models", format=".h5")
+            model_list = getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
             macro.append(model_list)
 
             attack_macro_list[i] = tuple(macro)
@@ -247,7 +247,7 @@ if rank == 0:
 
         # Create directives for the worker nodes
         print_info("Generating directive list for worker nodes.")
-        attack_directive_list = sst.generate_train(attack_macro_list)
+        attack_directive_list = sst.generate_attack(attack_macro_list)
         sliced_directive_list = sst.slice(attack_directive_list, size)
         
         # Broadcast that everything is good to go to the worker nodes
