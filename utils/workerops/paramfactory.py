@@ -2,7 +2,7 @@ import joblib
 import uuid
 
 
-def paramfactory(name, model_name, dataframe, model_params, manip_params, save_path, manip_name, manip_tag, root_path):
+def train_factory(name, model_name, dataframe, model_params, manip_params, save_path, manip_name, manip_tag, root_path):
     """Generate parameter dictionary to be sent out to plugin modules.
     Save as a pickle and return a file path reference to that pickle.
     
@@ -35,3 +35,11 @@ def paramfactory(name, model_name, dataframe, model_params, manip_params, save_p
     joblib.dump(d, pickle_path)
     
     return pickle_path
+
+
+def attack_factory():
+    pass
+
+
+def clean_factory():
+    pass
