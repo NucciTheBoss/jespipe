@@ -471,6 +471,17 @@ elif rank == 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=1)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=1)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=1)
+
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
 
     else:
@@ -590,12 +601,23 @@ elif rank == 2:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=2)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=2)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=2)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=2)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -714,12 +736,23 @@ elif rank == 3:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=3)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=3)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=3)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=3)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -838,12 +871,23 @@ elif rank == 4:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=4)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=4)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=4)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=4)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -962,12 +1006,23 @@ elif rank == 5:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=5)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=5)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=5)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=5)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -1086,12 +1141,23 @@ elif rank == 6:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=6)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=6)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=6)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=6)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -1210,12 +1276,23 @@ elif rank == 7:
     if skip_stage_attack != 1:
         logger.warning("INFO: Waiting for greenlight to start attack stage.")
         
-        attack_greenlight = comm.recv(source=0, tag=1)
+        attack_greenlight = comm.recv(source=0, tag=7)
         if attack_greenlight != 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
         logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
+        # Receive task from manager
+        task_list = comm.recv(source=0, tag=7)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            comm.send(1, dest=0, tag=7)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=7)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
