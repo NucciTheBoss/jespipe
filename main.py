@@ -11,7 +11,7 @@ import logging
 import subprocess
 from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
-from utils.workerops.paramfactory import paramfactory
+from utils.workerops.paramfactory import train_factory, attack_factory, clean_factory
 
 
 # Deactivate warnings from Python unless requested at command line
@@ -432,7 +432,7 @@ elif rank == 1:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -476,6 +476,14 @@ elif rank == 1:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=1)
 
         else:
@@ -567,7 +575,7 @@ elif rank == 2:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -613,6 +621,14 @@ elif rank == 2:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=2)
 
         else:
@@ -702,7 +718,7 @@ elif rank == 3:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -748,6 +764,14 @@ elif rank == 3:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=3)
 
         else:
@@ -837,7 +861,7 @@ elif rank == 4:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -883,6 +907,14 @@ elif rank == 4:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=4)
 
         else:
@@ -972,7 +1004,7 @@ elif rank == 5:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -1018,6 +1050,14 @@ elif rank == 5:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=5)
 
         else:
@@ -1107,7 +1147,7 @@ elif rank == 6:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -1153,6 +1193,14 @@ elif rank == 6:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=6)
 
         else:
@@ -1242,7 +1290,7 @@ elif rank == 7:
                     os.makedirs(save_path, exist_ok=True)
 
                 # Create dictionary that will be passed to plugin
-                param_dict = paramfactory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                 # Spawn plugin execution and block until the training section of the plugin has completed
                 logger.warning("INFO: Training model...")
@@ -1288,6 +1336,14 @@ elif rank == 7:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+            
             comm.send(1, dest=0, tag=7)
 
         else:
