@@ -11,7 +11,8 @@
     },
 
     "plugins": {
-        "LSTM": "plugins/models/RNN/LSTM.py"
+        "LSTM": "plugins/models/RNN/LSTM.py",
+        "CW_L2": "plugins/attack/carlinil2.py"
     },
 
     "datamanips": {
@@ -29,6 +30,10 @@
 
         "candlestick": {
             "time_interval": 20
+        },
+
+        "vanilla": {
+            "placeholder": 1
         }
     },
 
@@ -52,7 +57,7 @@
         "compress": {
             "format": "gzip",
             "name": "default",
-            "path": "$PWD"
+            "path": "~/Documents"
         }
     }
 }
