@@ -476,6 +476,14 @@ elif rank == 1:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=1)
 
         else:
@@ -613,6 +621,14 @@ elif rank == 2:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=2)
 
         else:
@@ -748,6 +764,14 @@ elif rank == 3:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=3)
 
         else:
@@ -883,6 +907,14 @@ elif rank == 4:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=4)
 
         else:
@@ -1018,6 +1050,14 @@ elif rank == 5:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=5)
 
         else:
@@ -1153,6 +1193,14 @@ elif rank == 6:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+
             comm.send(1, dest=0, tag=6)
 
         else:
@@ -1288,6 +1336,14 @@ elif rank == 7:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            # Generate adversarial examples
+            for task in task_list:
+                pass
+
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                pass
+            
             comm.send(1, dest=0, tag=7)
 
         else:
