@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <clean>
-        <clear_tmp></clear_tmp>
-        <plot plugin="/path/to/plotting/function.py" tag="plot1">
-            <tag>xbg1</tag>
-            <tag>rf1</tag>
-            <tag>pca1</tag>
-            <tag>cand1</tag>
+        <clear_tmp />
+        <plot plugin="plugins/clean/plot_rmse_mse.py" tag="plot1">
+            <tag value="xgb1" />
+            <tag value="rf1" />
+            <tag value="pca1" />
+            <tag value="cand1" />
+            <tag value="vanilla1" />
         </plot>
         <compress>
-            <format>gzip</format>
-            <name>run1</name>
-            <path>~/Documents</path>
+            <format value="gzip" />
+            <name value="run1" />
+            <path value="~/Documents" />
         </compress>
     </clean>
 </simu>
