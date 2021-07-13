@@ -8,6 +8,7 @@ import sys
 import time
 import warnings
 
+import joblib
 from mpi4py import MPI
 from tqdm import tqdm
 
@@ -15,7 +16,6 @@ from utils.workerops.paramfactory import (attack_factory, clean_factory,
                                           manip_factory, train_factory)
 from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
-
 
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
@@ -457,7 +457,7 @@ elif rank == 1:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to training plugin
-                    param_dict = train_factory(task[0], task[2], maniped_pickle, task[4], task[9], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[9], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
