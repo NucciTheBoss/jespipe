@@ -111,13 +111,16 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
 
                             # Loop through available parameters
                             for content in manip_content:
+                                # Create root for specific manipulation tag
+                                d["train"][data_name][model_name["value"]][manip][content["tag"]] = dict()
+
                                 # Add data manipulation plugin to dictionary
                                 try:
-                                    d["train"][data_name][model_name["value"]][manip].update({"plugin": content["plugin"]})
+                                    d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": content["plugin"]})
 
                                 except AttributeError:
                                     try:
-                                        d["train"][data_name][model_name["value"]][manip].update({"plugin": config_dict["plugins"]["datamanips"][content.name]})
+                                        d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": config_dict["plugins"]["datamanips"][content.name]})
 
                                     except KeyError:
                                         raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(content.name))
@@ -132,7 +135,7 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
                                         feat = _data_converter(feat["value"], feat["type"])
                                         tmp_dict.update({param: feat})
 
-                                d["train"][data_name][model_name["value"]][manip][content["tag"]] = tmp_dict
+                                d["train"][data_name][model_name["value"]][manip][content["tag"]]["manip_params"] = tmp_dict
 
                         else:
                             d["train"][data_name][model_name["value"]][manip] = None

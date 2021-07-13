@@ -187,6 +187,7 @@ if rank == 0:
     # ATTACK: launch attack stage of the pipeline
     if attack_control is not None:
         print_status("Launching attack stage.")
+
         # Broadcast out to workers that we are now operating on the attack stage
         skip.skip_attack(comm, size, False)
 
@@ -276,6 +277,7 @@ if rank == 0:
     # CLEAN: launch cleaning stage of the pipeline
     if clean_control is not None:
         print_status("Launching cleaning stage.")
+
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
 
