@@ -1,8 +1,8 @@
 import copy
-from typing import List, Tuple
+from typing import Tuple
 
 
-def unwrap_train(train_dict: dict) -> Tuple[str, str, str, str, dict, str, List[Tuple[str, List[str, dict]]]]:
+def unwrap_train(train_dict: dict) -> Tuple:
     """
     Convert training job control dictionary to a lower-level tuple.
     Train job control dictionary corresponds to the "train" key
@@ -92,7 +92,7 @@ def unwrap_train(train_dict: dict) -> Tuple[str, str, str, str, dict, str, List[
     return root
 
 
-def unwrap_attack(attack_dict: dict) -> Tuple[str, str, List[Tuple[str, dict]]]:
+def unwrap_attack(attack_dict: dict) -> Tuple:
     """
     Convert attack job control dictionary to a lower-level tuple.
     Attack job control dictionary corresponds to the "attack" key

@@ -1,18 +1,20 @@
-from mpi4py import MPI
 import json
-import sys
-import warnings
-import re
-import os
-from tqdm import tqdm
-import shutil
-import time
 import logging
+import os
+import re
+import shutil
 import subprocess
+import sys
+import time
+import warnings
+
+from mpi4py import MPI
+from tqdm import tqdm
+
+from utils.workerops.paramfactory import (attack_factory, clean_factory,
+                                          train_factory)
 from utils.workerops.preprocessing import preprocessing
 from utils.workerops.recombine import recombine
-from utils.workerops.paramfactory import train_factory, attack_factory, clean_factory
-
 
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
@@ -34,15 +36,16 @@ if rank == 0:
     # PREPROCESSING: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
     from colorama import Fore, Style, init
+
+    from utils.macro import xml2dict as x2d
+    from utils.macro.unwrap import unwrap_attack, unwrap_train
+    from utils.managerops.compress import Compression
+    from utils.managerops.getpaths import getmodels
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
-    from utils.macro import xml2dict as x2d
-    from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
-    from utils.managerops.getpaths import getmodels
-    from utils.managerops.compress import Compression
 
-    
+
     # Initialize colorama and define lambda functions
     init(autoreset=True)
     print_good = lambda x: print(Fore.GREEN + x)
