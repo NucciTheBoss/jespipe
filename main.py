@@ -116,6 +116,7 @@ if rank == 0:
     # TRAIN: launch training stage of the pipeline
     if train_control is not None:
         print_status("Launching training stage.")
+
         # Broadcast out to workers that we are now operating on the training stage
         skip.skip_train(comm, size, False)
 

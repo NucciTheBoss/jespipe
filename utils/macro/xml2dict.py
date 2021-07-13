@@ -270,7 +270,11 @@ def _data_converter(data: str, deftype: str) -> Any:
         return float(data)
 
     elif deftype == "bool":
-        return bool(data)
+        if data == "0" or data == "0.0" or data == "False" or data == "false":
+            return False
+
+        else:
+            return True
 
     elif deftype == "str":
         return str(data)
