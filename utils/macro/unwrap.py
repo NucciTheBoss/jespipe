@@ -1,8 +1,8 @@
 import copy
-from typing import Tuple, List
+from typing import List, Tuple
 
 
-def unwrap_train(train_dict: dict) -> Tuple[str, str, str, str, dict, str, List[Tuple[str, dict]]]:
+def unwrap_train(train_dict: dict) -> Tuple[str, str, str, str, dict, str, List[Tuple[str, List[str, dict]]]]:
     """
     Convert training job control dictionary to a lower-level tuple.
     Train job control dictionary corresponds to the "train" key
@@ -20,7 +20,7 @@ def unwrap_train(train_dict: dict) -> Tuple[str, str, str, str, dict, str, List[
       - 3: "algorithm_name"
       - 4: {"algorithm_param": value}
       - 5: "/path/to/model/plugin.py"
-      - 6: [("manip_name", {"manip_tag": {"plugin": "/path/to/manip/plugin.py", "manip_params":{"param": value}}}]
+      - 6: [("manip_name", ["manip_tag", {"plugin": "/path/to/manip/plugin.py", "manip_params":{"param": value}}]]
     """
     # Create empty list that will eventually be returned to main.py
     root = list()
