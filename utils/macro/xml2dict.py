@@ -7,14 +7,14 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
     """
     Convert XML control file to an easily processable dictionary.
     
-    ### Parameters
+    ### Parameters:
     :param xml_file: System file path reference to XML control file.
     :param config_dict: Global Jespipe configuration dictionary.
 
-    ### Returns
+    ### Returns:
     :return: XML control file processed into dictionary.
 
-    ### Raises
+    ### Raises:
     - AttributeError
       - Raised if an attribute for an element in the XML control file is not found.
 
@@ -93,10 +93,10 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
 
                     except KeyError:
                         try:
-                            d["train"][data_name][model_name["value"]].update({"plugin": config_dict["plugins"][model_arch["value"]]})
+                            d["train"][data_name][model_name["value"]].update({"plugin": config_dict["plugins"]["algorithms"][model_arch["value"]]})
 
                         except KeyError:
-                            raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.")
+                            raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(model_name["value"]))
                     
                     # Pull available manipulations from configuration dictionary
                     manip_list = [k for k in config_dict["datamanips"]]
@@ -108,7 +108,20 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
 
                         if manip_content != []:
                             d["train"][data_name][model_name["value"]][manip] = dict()
+
+                            # Loop through available parameters
                             for content in manip_content:
+                                # Add data manipulation plugin to dictionary
+                                try:
+                                    d["train"][data_name][model_name["value"]][manip].update({"plugin": content["plugin"]})
+
+                                except AttributeError:
+                                    try:
+                                        d["train"][data_name][model_name["value"]][manip].update({"plugin": config_dict["plugins"]["datamanips"][content.name]})
+
+                                    except KeyError:
+                                        raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(content.name))
+                                
                                 # Create deepcopy of default configuration dictionary
                                 tmp_dict = copy.deepcopy(manip_config)
 
@@ -119,7 +132,7 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
                                         feat = _data_converter(feat["value"], feat["type"])
                                         tmp_dict.update({param: feat})
 
-                                d["train"][data_name][model_name["value"]][manip][manip["tag"]] = tmp_dict
+                                d["train"][data_name][model_name["value"]][manip][content["tag"]] = tmp_dict
 
                         else:
                             d["train"][data_name][model_name["value"]][manip] = None
@@ -162,7 +175,7 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
 
                         except KeyError:
                             try:
-                                d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = config_dict["plugins"][current_attack.name]
+                                d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = config_dict["plugins"]["attacks"][current_attack.name]
 
                             except KeyError:
                                 raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(current_attack.name))
@@ -240,11 +253,11 @@ def _data_converter(data: str, deftype: str) -> Any:
     Convert data to type specified by user in XML control file.
     Defaults to data type str if user specifies invalid type.
 
-    ### Parameters
+    ### Parameters:
     :param data: Data to convert to user-defined type.
     :param deftype: User-defined type. Supported types are int|float|bool|str.
 
-    ### Returns
+    ### Returns:
     :return: Data converted to the user-defined type.
     """
     if deftype == "int":
