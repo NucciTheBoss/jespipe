@@ -3,34 +3,6 @@ from bs4 import BeautifulSoup
 import copy
 
 
-def _data_converter(data: str, deftype: str) -> Any:
-    """
-    Convert data to type specified by user in XML control file.
-    Defaults to data type str if user specifies invalid type.
-
-    ### Parameters
-    :param data: Data to convert to user-defined type.
-    :param deftype: User-defined type. Supported types are int|float|bool|str.
-
-    ### Returns
-    :return: Data converted to the user-defined type.
-    """
-    if deftype == "int":
-        return int(data)
-
-    elif deftype == "float":
-        return float(data)
-
-    elif deftype == "bool":
-        return bool(data)
-
-    elif deftype == "str":
-        return str(data)
-
-    else:
-        return str(data)
-
-
 def xml2dict(xml_file: str, config_dict: dict) -> dict:
     """
     Convert XML control file to an easily processable dictionary.
@@ -261,3 +233,31 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
             d["clean"]["compress"] = None
 
     return d
+
+
+def _data_converter(data: str, deftype: str) -> Any:
+    """
+    Convert data to type specified by user in XML control file.
+    Defaults to data type str if user specifies invalid type.
+
+    ### Parameters
+    :param data: Data to convert to user-defined type.
+    :param deftype: User-defined type. Supported types are int|float|bool|str.
+
+    ### Returns
+    :return: Data converted to the user-defined type.
+    """
+    if deftype == "int":
+        return int(data)
+
+    elif deftype == "float":
+        return float(data)
+
+    elif deftype == "bool":
+        return bool(data)
+
+    elif deftype == "str":
+        return str(data)
+
+    else:
+        return str(data)
