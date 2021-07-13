@@ -10,7 +10,7 @@
                 <parameters>
                     <sequence_length type="int" value="12" />
                     <batch_size type="int" value="256" />
-                    <epochs>50</epochs>
+                    <epochs type="int" value="50" />
                     <validation_split type="float" value="0.1" />
                     <verbose type="bool" value="True" />
                     <learning_rate type="float" value="0.001" />
