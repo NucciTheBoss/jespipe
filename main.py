@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -14,7 +15,7 @@ from mpi4py import MPI
 from tqdm import tqdm
 
 import utils.filesystem.getpaths as gp
-from utils.workerops.paramfactory import (attack_factory, clean_factory,
+from utils.workerops.paramfactory import (attack_factory, attack_train_factory, clean_factory,
                                           manip_factory, train_factory)
 
 
@@ -511,21 +512,49 @@ elif rank == 1:
                 min_change = Decimal(str(task[6]["min_change"]))
                 change_step = Decimal(str(task[6]["change_step"]))
 
-                # Construct float dictionary using float values
+                # Construct perturbation steps list using max_change, min_change, and change_step
                 tmp_list = []
                 while min_change <= max_change:
                     tmp_list.append(min_change); min_change += change_step
 
+                # Convert decimal values back to float values                
                 change_values = [float(i) for i in tmp_list]
 
+                # Launch adversarial generation process for each perturbation step
                 for change in change_values:
-                    # Write method to obtain path to model test_features
-                    # Generate parameter dictionary, then launch attack.
-                    pass
+                    logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                    # Open file that the attack plugin can use as a log file
+                    file_output = "data/.logs/worker-1/{}-attack-{}-{}.log".format(TIME, task[2], task[3])
+                    logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                    fout = open(file_output, "wt")
+
+                    params = copy.deepcopy(task[6]); params.update({"min_change": change})
+                    test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                    attack_param = attack_factory(task[3], task[7], joblib.load(test_features), params, 
+                                                    ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                    # Close the attack plugin log file
+                    fout.close()
 
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-1/{}-eval-{}-{}.log".format(TIME, task[2], task[3])
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=file_output, stderr=file_output)
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=1)
 
