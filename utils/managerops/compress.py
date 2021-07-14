@@ -1,7 +1,7 @@
 import tarfile
 from zipfile import ZipFile
 from tqdm import tqdm
-from . import getpaths as gp
+from ..filesystem import getpaths as gp
 
 
 class Compression:

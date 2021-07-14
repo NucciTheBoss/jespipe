@@ -7,11 +7,13 @@ import subprocess
 import sys
 import time
 import warnings
+from decimal import Decimal
 
 import joblib
 from mpi4py import MPI
 from tqdm import tqdm
 
+import utils.filesystem.getpaths as gp
 from utils.workerops.paramfactory import (attack_factory, clean_factory,
                                           manip_factory, train_factory)
 
@@ -40,7 +42,6 @@ if rank == 0:
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_attack, unwrap_train
     from utils.managerops.compress import Compression
-    from utils.managerops.getpaths import getmodels
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.workerops import scattershot as sst
@@ -252,7 +253,7 @@ if rank == 0:
 
             # If models do exist, autodetect the .h5 files and add to macro list
             print_info("Auto-detecting models for dataset {}.".format(macro[0]))
-            model_list = getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
+            model_list = gp.getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
             macro.append(model_list)
 
             attack_macro_list[i] = tuple(macro)
@@ -502,7 +503,25 @@ elif rank == 1:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
+
+                # Grab max_change, min_change, and change_step from parameter dictionary
+                # Convert to Decimal clas to make float arithmetic more secure
+                max_change = Decimal(str(task[6]["max_change"]))
+                min_change = Decimal(str(task[6]["min_change"]))
+                change_step = Decimal(str(task[6]["change_step"]))
+
+                # Construct float dictionary using float values
+                tmp_list = []
+                while min_change <= max_change:
+                    tmp_list.append(min_change); min_change += change_step
+
+                change_values = [float(i) for i in tmp_list]
+
+                for change in change_values:
+                    # Write method to obtain path to model test_features
+                    # Generate parameter dictionary, then launch attack.
+                    pass
 
             # Evaluate model using adversarial examples
             for task in task_list:

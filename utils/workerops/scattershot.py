@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from ..managerops import getpaths as gp
+from ..filesystem import getpaths as gp
 
 
 def generate_train(macro_list: List) -> List[Tuple[str, str, str, str, dict, str, str, str, str, dict]]:
