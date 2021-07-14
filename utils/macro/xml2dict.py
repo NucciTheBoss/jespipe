@@ -1,13 +1,26 @@
+from typing import Any
 from bs4 import BeautifulSoup
 import copy
 
 
-def xml2dict(xml_file, config_file):
-    """Return XML file as a Python dictionary.
+def xml2dict(xml_file: str, config_dict: dict) -> dict:
+    """
+    Convert XML control file to an easily processable dictionary.
     
-    Keyword arguments:
-    xml_file -- marco XML file to convert to a Python dictionary.
-    config_file -- global configuration dictionary."""
+    ### Parameters:
+    :param xml_file: System file path reference to XML control file.
+    :param config_dict: Global Jespipe configuration dictionary.
+
+    ### Returns:
+    :return: XML control file processed into dictionary.
+
+    ### Raises:
+    - AttributeError
+      - Raised if an attribute for an element in the XML control file is not found.
+
+    - KeyError
+      - Raised if a key is not found in the configuration dictionary.
+    """
     fin = open(xml_file, "rt"); xml_data = fin.read(); fin.close()
     soup = BeautifulSoup(xml_data, "xml")
 
@@ -35,27 +48,27 @@ def xml2dict(xml_file, config_file):
                 for model_datum in model_data:
                     # Grab model name and add to dictionary
                     model_name = model_datum.find("name")
-                    d["train"][data_name][model_name.text] = dict()
+                    d["train"][data_name][model_name["value"]] = dict()
 
                     # Pull the algorithm/architecture for the model
                     model_arch = model_datum.find("algorithm")
                     try:
-                        d["train"][data_name][model_name.text].update({"algorithm": model_arch.text})
+                        d["train"][data_name][model_name["value"]].update({"algorithm": model_arch["value"]})
                     
                     except AttributeError:
                         raise AttributeError("No algorithm specified in macro XML file.")
 
                     try:
-                        arch_config = config_file["algorithms"][model_arch.text]
+                        arch_config = config_dict["algorithms"][model_arch["value"]]
 
                     except KeyError:
-                        raise KeyError("Algorithm {} key not present in .config.json. Please add default architecture/algorithm parameters to .config.json".format(model_arch.text))
+                        raise KeyError("Algorithm {} key not present in .config.json. Please add default architecture/algorithm parameters to .config.json".format(model_arch["value"]))
 
                     # Pull user specified model parameters
                     model_params = model_datum.find_all("parameters")
 
                     if model_params != []:
-                        d["train"][data_name][model_name.text]["parameters"] = dict()
+                        d["train"][data_name][model_name["value"]]["parameters"] = dict()
                         for param_set in model_params:
                             # Create a deepcopy of the default rnn_config dictionary
                             tmp_dict = copy.deepcopy(arch_config)
@@ -64,133 +77,68 @@ def xml2dict(xml_file, config_file):
                                 # Pull parameters tag in XML file
                                 feat = param_set.find(param)
                                 if feat is not None:
-                                    feat = feat.text
+                                    feat = _data_converter(feat["value"], feat["type"])
                                     tmp_dict.update({param: feat})
 
-                            d["train"][data_name][model_name.text]["parameters"] = tmp_dict
+                            d["train"][data_name][model_name["value"]]["parameters"] = tmp_dict
 
                     else:
                         # Still need to add parameters to the job_control dictionary
                         # regradless of mention in XML macro file
-                        d["train"][data_name][model_name.text]["parameters"] = arch_config
+                        d["train"][data_name][model_name["value"]]["parameters"] = arch_config
 
                     # Add the plugin that the user will be utilizing
                     try:
-                        d["train"][data_name][model_name.text].update({"plugin": model_datum["plugin"]})
+                        d["train"][data_name][model_name["value"]].update({"plugin": model_datum["plugin"]})
 
                     except KeyError:
                         try:
-                            d["train"][data_name][model_name.text].update({"plugin": config_file["plugins"][model_arch.text]})
+                            d["train"][data_name][model_name["value"]].update({"plugin": config_dict["plugins"]["algorithms"][model_arch["value"]]})
 
                         except KeyError:
-                            raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.")
+                            raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(model_name["value"]))
                     
-                    # Pull all user specified data manipulations
-                    xgbmanip = model_datum.find_all("xgboost")
-                    ranforestmanip = model_datum.find_all("randomforest")
-                    pcamanip = model_datum.find_all("pca")
-                    candlemanip = model_datum.find_all("candlestick")
+                    # Pull available manipulations from configuration dictionary
+                    manip_list = [k for k in config_dict["datamanips"]]
 
-                    if xgbmanip != []:
-                        # Pull xgb configuration from config dictionary
-                        try:
-                            xgb_config = config_file["datamanips"]["xgboost"]
+                    # Loop through available manips
+                    for manip in manip_list:
+                        manip_config = config_dict["datamanips"][manip]
+                        manip_content = model_datum.find_all(manip)
 
-                        except KeyError:
-                            raise KeyError("Datamanip xgboost key not present in .config.json. Please add default xgboost parameters to .config.json")
+                        if manip_content != []:
+                            d["train"][data_name][model_name["value"]][manip] = dict()
 
-                        d["train"][data_name][model_name.text]["xgboost"] = dict()
-                        for xgb in xgbmanip:
-                            # Create deepcopy of default xgb_config dictionary
-                            tmp_dict = copy.deepcopy(xgb_config)
+                            # Loop through available parameters
+                            for content in manip_content:
+                                # Create root for specific manipulation tag
+                                d["train"][data_name][model_name["value"]][manip][content["tag"]] = dict()
 
-                            for param in xgb_config:
-                                # Pull parameter's tag in XML file
-                                feat = xgb.find(param)
-                                if feat is not None:
-                                    feat = feat.text
-                                    tmp_dict.update({param: feat})
-                            
-                            # Add final tmp_dict to root
-                            d["train"][data_name][model_name.text]["xgboost"][xgb["tag"]] = tmp_dict
+                                # Add data manipulation plugin to dictionary
+                                try:
+                                    d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": content["plugin"]})
 
-                    else:
-                        # Set to none if xgboost is not present in macro file
-                        d["train"][data_name][model_name.text]["xgboost"] = None
+                                except AttributeError:
+                                    try:
+                                        d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": config_dict["plugins"]["datamanips"][content.name]})
 
-                    if ranforestmanip != []:
-                        # Pull randomforest configuration from config dictionary
-                        try:
-                            rf_config = config_file["datamanips"]["randomforest"]
-
-                        except KeyError:
-                            raise KeyError("Datamanip randomforest key not present in .config.json. Please add default randomforest parameters to .config.json")
-
-                        d["train"][data_name][model_name.text]["randomforest"] = dict()
-                        for rf in ranforestmanip:
-                            # Create deepcopy of default rf_config dictionary
-                            tmp_dict = copy.deepcopy(rf_config)
-
-                            # Mere mention of Random Forest will store placeholder value of 1.
-                            tmp_dict.update({"placeholder": 1})
-                            d["train"][data_name][model_name.text]["randomforest"][rf["tag"]] = tmp_dict
-
-                    else:
-                        # Set to none if randomforest is not present in macro file
-                        d["train"][data_name][model_name.text]["randomforest"] = None
-
-                    if pcamanip != []:
-                        # Pull pca config from config dictionary
-                        try:
-                            pca_config = config_file["datamanips"]["pca"]
-
-                        except KeyError:
-                            raise KeyError("Datamanip pca key not present in .config.json. Please add default pca parameters to .config.json")
-
-                        d["train"][data_name][model_name.text]["pca"] = dict()
-                        for pca in pcamanip:
-                            # Create deepcopy of default pca_config dictionary
-                            tmp_dict = copy.deepcopy(pca_config)
-
-                            for param in pca_config:
-                                # Pull parameter's tag in XML file
-                                feat = pca.find(param)
-                                if feat is not None:
-                                    feat = feat.text
-                                    tmp_dict.update({param: feat})
-                            
-                            # Add final tmp_dict to root
-                            d["train"][data_name][model_name.text]["pca"][pca["tag"]] = tmp_dict
-
-                    else:
-                        # Set to none if pca is not present in the macro XML file
-                        d["train"][data_name][model_name.text]["pca"] = None
-
-                    if candlemanip != []:
-                        try:
-                            candle_config = config_file["datamanips"]["candlestick"]
-
-                        except KeyError:
-                            raise KeyError("Datamanip candlestick key not present in .config.json. Please add default candlestick parameters to .config.json")
-                        
-                        d["train"][data_name][model_name.text]["candlestick"] = dict()
-                        for cand in candlemanip:
-                            # Create deepcopy of default candle_config dictionary
-                            tmp_dict = copy.deepcopy(candle_config)
-
-                            for param in candle_config:
-                                # Pull parameter's tag in XML file
-                                feat = cand.find(param)
-                                if feat is not None:
-                                    feat = feat.text
-                                    tmp_dict.update({param: feat})
+                                    except KeyError:
+                                        raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(content.name))
                                 
-                            d["train"][data_name][model_name.text]["candlestick"][cand["tag"]] = tmp_dict
+                                # Create deepcopy of default configuration dictionary
+                                tmp_dict = copy.deepcopy(manip_config)
 
-                    else:
-                        # Set to none if candlestick is not present in macro XML file
-                        d["train"][data_name][model_name.text]["candlestick"] = None
-                                
+                                # Loop through all parameters to construct manipulation
+                                for param in manip_config:
+                                    feat = content.find(param)
+                                    if feat is not None:
+                                        feat = _data_converter(feat["value"], feat["type"])
+                                        tmp_dict.update({param: feat})
+
+                                d["train"][data_name][model_name["value"]][manip][content["tag"]]["manip_params"] = tmp_dict
+
+                        else:
+                            d["train"][data_name][model_name["value"]][manip] = None
 
     # Parse attack tag; skip if not specified in XML file
     if attack_data != []:
@@ -203,7 +151,7 @@ def xml2dict(xml_file, config_file):
             d["attack"][data_name].update({"path": data_path})
 
             # Pull all the attack tags from the config dictionary
-            key_list = [k for k in config_file["attacks"]]
+            key_list = [k for k in config_dict["attacks"]]
 
             # Loop through all available attacks to see if they are in the macro file
             for attack in key_list:
@@ -211,7 +159,7 @@ def xml2dict(xml_file, config_file):
 
                 if current_attacks != []:
                     # Pull config dictionary
-                    attack_config = config_file["attacks"][attack]
+                    attack_config = config_dict["attacks"][attack]
                     d["attack"][data_name][attack] = dict()
 
                     for current_attack in current_attacks:
@@ -221,11 +169,20 @@ def xml2dict(xml_file, config_file):
                         for param in attack_config:
                             feat = current_attack.find(param)
                             if feat is not None:
-                                feat = feat.text
+                                feat = _data_converter(feat["value"], feat["type"])
                                 tmp_dict.update({param: feat})
 
                         d["attack"][data_name][attack][current_attack["tag"]] = dict()
-                        d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = current_attack["plugin"]
+                        try:
+                            d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = current_attack["plugin"]
+
+                        except KeyError:
+                            try:
+                                d["attack"][data_name][attack][current_attack["tag"]]["plugin"] = config_dict["plugins"]["attacks"][current_attack.name]
+
+                            except KeyError:
+                                raise KeyError("Plugin for {} not available. Please specify plugin in .config.json.".format(current_attack.name))
+
                         d["attack"][data_name][attack][current_attack["tag"]]["model_plugin"] = current_attack["model_plugin"]
                         d["attack"][data_name][attack][current_attack["tag"]]["params"] = tmp_dict
 
@@ -235,7 +192,7 @@ def xml2dict(xml_file, config_file):
     # Parse clean tag; skip if not specified in XML file
     if clean != []:
         d["clean"] = dict()
-        clean_config = config_file["clean"]
+        clean_config = config_dict["clean"]
 
         # There are only three supported tags for clean stage: plot, clean_tmp, and compress
         plots = clean.find_all("plot")
@@ -250,7 +207,7 @@ def xml2dict(xml_file, config_file):
                 if tags != []:
                     tag_list = list()
                     for tag in tags:
-                        tag_list.append(tag.text)
+                        tag_list.append(tag["value"])
 
                     d["clean"]["plot"][plot["tag"]].update({"tags": tag_list})
 
@@ -275,16 +232,16 @@ def xml2dict(xml_file, config_file):
                 compress_config = clean_config["compress"]
 
             except KeyError:
-                raise KeyError("Clean key compress is not present in .config.json. Please add default compress parameters to .config.json")
+                raise KeyError("Clean key compress is not present in .config.json. Please add default compression parameters to .config.json")
 
             for compression in compress:
                 format = compression.find("format")
                 name = compression.find("name")
                 path = compression.find("path")
 
-                format = compress_config["format"] if format is None else format.text
-                name = compress_config["name"] if name is None else name.text
-                path = compress_config["path"] if path is None else path.text
+                format = compress_config["format"] if format is None else format["value"]
+                name = compress_config["name"] if name is None else name["value"]
+                path = compress_config["path"] if path is None else path["value"]
 
                 d["clean"]["compress"].update({name: {"format": format, "path": path}})
 
@@ -292,3 +249,35 @@ def xml2dict(xml_file, config_file):
             d["clean"]["compress"] = None
 
     return d
+
+
+def _data_converter(data: str, deftype: str) -> Any:
+    """
+    Convert data to type specified by user in XML control file.
+    Defaults to data type str if user specifies invalid type.
+
+    ### Parameters:
+    :param data: Data to convert to user-defined type.
+    :param deftype: User-defined type. Supported types are int|float|bool|str.
+
+    ### Returns:
+    :return: Data converted to the user-defined type.
+    """
+    if deftype == "int":
+        return int(data)
+
+    elif deftype == "float":
+        return float(data)
+
+    elif deftype == "bool":
+        if data == "0" or data == "0.0" or data == "False" or data == "false":
+            return False
+
+        else:
+            return True
+
+    elif deftype == "str":
+        return str(data)
+
+    else:
+        return str(data)

@@ -1,14 +1,27 @@
 import copy
+from typing import Tuple
 
 
-def unwrap_train(train_dict):
-    """Convert train job control dictionary to workable tuple.
+def unwrap_train(train_dict: dict) -> Tuple:
+    """
+    Convert training job control dictionary to a lower-level tuple.
+    Train job control dictionary corresponds to the "train" key
+    of Jespipe root job control dictionary.
     
-    Keyword arguments:
-    train_dict -- train job control dictionary to convert to workable tuple.
+    ### Parameters:
+    :param train_dict: Train job control dictionary to convert to a lower-level tuple.
     
-    Returned format:
-    (dataset_name, dataset_path, model_name, algorithm, parameters, plugin, [(manip, {params: value})]"""
+    ### Returns:
+    :return: (dataset_name, dataset_path, model_name, algorithm_name, algorithm_parameters, plugin, [(manip, {manip_tag: {params: values}})])
+    - Positional value of each index:
+      - 0: "dataset_name"
+      - 1: "/path/to/dataset"
+      - 2: "model_name"
+      - 3: "algorithm_name"
+      - 4: {"algorithm_param": value}
+      - 5: "/path/to/model/plugin.py"
+      - 6: [("manip_name", ["manip_tag", {"plugin": "/path/to/manip/plugin.py", "manip_params":{"param": value}}]]
+    """
     # Create empty list that will eventually be returned to main.py
     root = list()
 
@@ -79,14 +92,23 @@ def unwrap_train(train_dict):
     return root
 
 
-def unwrap_attack(attack_dict):
-    """Convert attack job control dictionary to workable tuple.
+def unwrap_attack(attack_dict: dict) -> Tuple:
+    """
+    Convert attack job control dictionary to a lower-level tuple.
+    Attack job control dictionary corresponds to the "attack" key
+    of Jespipe root job control dictionary.
     
-    Keyword arguments:
-    attack_dict -- attack job control dictionary to convert to workable tuple.
+    ### Parameters:
+    :param attack_dict: Attack job control dictionary to convert to a lower-level tuple.
     
-    Returned format:
-    (dataset_name, dataset_path, [(attack, {attack_tag: params})])"""
+    ### Returns:
+    :return: (dataset_name, dataset_path, [(attack_name, {attack_tag: params})])
+    - Positional value of each index:
+      - 0: "dataset_name"
+      - 1: "/path/to/dataset"
+      - 2: [("attack_name", {"attack_tag": {"plugin": "/path/to/attack/plugin.py",
+      "model_plugin": "/path/to/model/plugin.py", "attack_params", {"param": value}}})]
+    """
     # Create empty list that will eventually be returned to main.py
     root = list()
 

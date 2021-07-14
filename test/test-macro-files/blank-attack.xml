@@ -3,16 +3,16 @@
     <attack>
         <dataset file="test/datasets/google-stock/google-clean.csv">
             <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
-                <max_change>0.2</max_change>
-                <min_change>0.05</min_change>
-                <change_step>0.025</change_step>
-                <learning_rate>0.001</learning_rate>
-                <max_iter>100</max_iter>
-                <binary_search_steps>9</binary_search_steps>
-                <batch_size>20</batch_size>
-                <initial_cost>1</initial_cost>
-                <sequence_length>60</sequence_length>
-                <verbose>True</verbose>
+                <max_change type="float" value="0.2" />
+                <min_change type="float" value="0.05" />
+                <change_step type="float" value="0.025" />
+                <learning_rate type="float" value="0.001" />
+                <max_iter type="int" value="100" />
+                <binary_search_steps type="int" value="9" />
+                <batch_size type="int" value="20" />
+                <initial_cost type="int" value="1" />
+                <sequence_length type="int" value="60" />
+                <verbose type="bool" value="True" />
             </CW_L2>
         </dataset>
     </attack>

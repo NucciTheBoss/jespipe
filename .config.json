@@ -1,17 +1,31 @@
 {
+    "plugins": {
+        "algorithms": {
+            "LSTM": "plugins/models/RNN/LSTM.py"
+        },
+
+        "datamanips": {
+            "xgboost": "plugins/manip/many_to_one_xgb.py",
+            "randomforest": "plugins/manip/many_to_one_randomforest.py",
+            "pca": "plugins/manip/many_to_one_pca.py",
+            "candlestick": "plugins/manip/many_to_one_candlestick.py",
+            "vanilla": "plugins/manip/many_to_one_vanilla.py"
+        },
+
+        "attacks":{
+            "CW_L2": "plugins/attack/carlinil2.py"
+        }
+    },
+
     "algorithms": {
         "LSTM": {
             "sequence_length": 12,
             "batch_size": 256,
             "epochs": 50,
             "validation_split": 0.1,
-            "verbose": 1,
+            "verbose": true,
             "learning_rate": 0.001
         }
-    },
-
-    "plugins": {
-        "LSTM": "plugins/models/RNN/LSTM.py"
     },
 
     "datamanips": {
@@ -29,6 +43,10 @@
 
         "candlestick": {
             "time_interval": 20
+        },
+
+        "vanilla": {
+            "placeholder": 1
         }
     },
 
@@ -43,7 +61,7 @@
             "batch_size": 20,
             "initial_const": 1,
             "sequence_length": 60,
-            "verbose": "True"
+            "verbose": true
         }
     },
     
@@ -52,7 +70,7 @@
         "compress": {
             "format": "gzip",
             "name": "default",
-            "path": "$PWD"
+            "path": "~/Documents"
         }
     }
 }

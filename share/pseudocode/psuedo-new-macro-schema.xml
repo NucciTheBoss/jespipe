@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <train>
+        <dataset file="/path/to/some/file.csv">
+            <model plugin="/path/to/my/model/build_code.py">
+                <name value="my_model_name" />
+
+                <algorithm value="LSTM" />
+
+                <parameters>
+                    <sequence_length type="int" value="12" />
+                    <batch_size type="int" value="256" />
+                    <epochs type="int" value="50" />
+                    <validation_split type="float" value="0.1" />
+                    <verbose type="bool" value="True" />
+                    <learning_rate type="float" value="0.001" />
+                </parameters>
+                
+                <xgboost tag="xgb1">
+                    <n_features type="int" value="11" />
+                </xgboost>
+
+                <randomforest tag="rf1"></randomforest>
+                
+                <pca tag="pca1">
+                    <n_features type="int" value="11" />
+                </pca>
+
+                <candlestick tag="cand1">
+                    <time_interval type="int" value="20" />
+                </candlestick>
+
+                <vanilla tag="vanilla1"></vanilla>
+            </model>
+        </dataset>
+    </train>
+
+    <attack>
+        <dataset file="/path/to/some/file.csv">
+            <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
+                <max_change type="float" value="0.2" />
+                <min_change type="float" value="0.05" />
+                <change_step type="float" value="0.025" />
+                <learning_rate type="float" value="0.001" />
+                <max_iter type="int" value="100" />
+                <binary_search_steps type="int" value="9" />
+                <batch_size type="int" value="20" />
+                <initial_cost type="int" value="1" />
+                <sequence_length type="int" value="60" />
+                <verbose type="bool" value="True" />
+            </CW_L2>
+        </dataset>
+    </attack>
+ 
+    <clean>
+        <clear_tmp />
+        <plot plugin="/path/to/plotting/function.py" tag="plot1">
+            <tag value="xgb1" />
+            <tag value="rf1" />
+            <tag value="pca1" />
+            <tag value="cand1" />
+            <tag value="vanilla1" />
+        </plot>
+        <compress>
+            <format value="gzip" />
+            <name value="run1" />
+            <path value="~/Documents" />
+        </compress>
+    </clean>
+</simu>

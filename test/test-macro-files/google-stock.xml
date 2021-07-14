@@ -3,31 +3,31 @@
     <train>
         <dataset file="test/datasets/google-stock/google-clean.csv">
             <model plugin="plugins/models/RNN/LSTM.py">
-                <name>google-stock-LSTM</name>
+                <name value="barebones_model" />
 
-                <algorithm>LSTM</algorithm>
+                <algorithm value="LSTM" />
 
                 <parameters>
-                    <sequence_length>12</sequence_length>
-                    <batch_size>256</batch_size>
-                    <epochs>50</epochs>
-                    <validation_split>0.1</validation_split>
-                    <verbose>1</verbose>
-                    <learning_rate>0.001</learning_rate>
+                    <sequence_length type="int" value="12" />
+                    <batch_size type="int" value="256" />
+                    <epochs type="int" value="50" />
+                    <validation_split type="float" value="0.1" />
+                    <verbose type="bool" value="True" />
+                    <learning_rate type="float" value="0.001" />
                 </parameters>
                 
-                <xgboost tag="xgb1">
-                    <n_features>3</n_features>
+                <xgboost plugin="plugins/manip/many_to_one_xgb.py" tag="xgb1">
+                    <n_features type="int" value="3" />
                 </xgboost>
 
-                <randomforest tag="rf1"></randomforest>
+                <randomforest plugin="plugins/manip/many_to_one_randomforest.py" tag="rf1"></randomforest>
                 
-                <pca tag="pca1">
-                    <n_features>3</n_features>
+                <pca plugin="plugins/manip/many_to_one_pca.py" tag="pca1">
+                    <n_features type="int" value="3" />
                 </pca>
 
-                <candlestick tag="cand1">
-                    <time_interval>20</time_interval>
+                <candlestick plugin="plugins/manip/many_to_one_candlestick.py" tag="cand1">
+                    <time_interval type="int" value="20" />
                 </candlestick>
             </model>
         </dataset>

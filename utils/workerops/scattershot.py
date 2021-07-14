@@ -1,12 +1,33 @@
+from typing import List, Tuple
+
 import numpy as np
+
 from ..managerops import getpaths as gp
 
 
-def generate_train(macro_list):
-    """Generate scatterable training directive list.
+def generate_train(macro_list: List) -> List[Tuple[str, str, str, str, dict, str, str, str, str, dict]]:
+    """
+    Generate scatterable training directive list using a list of low-level macro tuples.
     
-    Keyword arguments:
-    macro_list -- training tuple list to be convertered into a scatterable list."""
+    ### Paramters:
+    :param macro_list: Low-level training tuple list to be convertered into a scatterable list
+    for later task delegation to the worker nodes.
+
+    ### Returns:
+    :return: [(dataset_name, dataset_path, model_name, algorithm_name, algorithm_parameters, 
+    model_plugin_path, data_manip_name, data_manip_tag, data_manip_plugin, data_manip_parameters)]
+    - Positional value of each index in a tuple contained in the scatterable list:
+      - 0: "dataset_name"
+      - 1: "/path/to/dataset"
+      - 2: "model_name"
+      - 3: "algorithm_name"
+      - 4: {"algorithm_param": value}
+      - 5: "/path/to/model/plugin.py"
+      - 6: "data_manipulation_name"
+      - 7: "data_manipulation_tag"
+      - 8: "/path/to/manip/plugin.py"
+      - 9: {"manip_param": value}
+    """
     # Initialize root list that will be returned to main.py
     root = list()
 
@@ -32,19 +53,36 @@ def generate_train(macro_list):
                 manip_list = manip_type[1]
                 for manip in manip_list:
                     # Create directive tuple and add to root list
-                    root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, manip_type_name, manip[0], manip[1]))
+                    root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, manip_type_name, manip[0], manip[1]["plugin"], manip[1]["manip_params"]))
 
         else:
-            root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, None, None, None))
+            root.append((dataset_name, dataset_path, model_name, algorithm, parameters, plugin, None, None, None, None))
 
     return root
 
 
-def generate_attack(macro_list):
-    """Generate scatterable attack directive list.
+def generate_attack(macro_list: List) -> List[Tuple[str, str, str, str, str, str, dict, str, str]]:
+    """
+    Generate scatterable attack directive list using a list of low-level macro tuples.
     
-    Keyword arguments:
-    macro_list -- attack tuple list to be convertered into a scatterable list."""
+    ### Parameters:
+    :param macro_list: Low-level attack tuple list to be convertered into a scatterable list
+    for later task delegation to the worker nodes.
+
+    ### Returns:
+    :return: [(dataset_name, dataset_path, attack_type, attack_tag, attack_plugin, model_plugin, 
+    attack_parameters, model_path, model_root_path)]
+    - Positional value of each index in a tuple contained in the scatterable list:
+      - 0: "dataset_name"
+      - 1: "/path/to/dataset"
+      - 2: "attack_type"
+      - 3: "attack_tag"
+      - 4: "/path/to/attack/plugin.py"
+      - 5: "/path/to/model/plugin.py"
+      - 6: {"attack_param": value}
+      - 7: "/path/to/model"
+      - 8: "/path/to/model/root/path"
+    """
     # Initialize root list that will be returned to main.py
     root = list()
 
@@ -81,13 +119,23 @@ def generate_attack(macro_list):
     return root
 
 
-def generate_clean(plot_dict, save_path, data_path):
-    """Generate scatterable clean directive list.
+def generate_clean(plot_dict: dict, save_path: str, data_path: str) -> List[Tuple[str, List[str], str, str]]:
+    """
+    Generate scatterable clean directive list using a list of low-level macro tuples.
     
-    Keyword arguments:
-    plot_dict -- dictionary containing user-defined macros for clean stage.
-    save_path -- location to save user-generated plots.
-    data_path -- location of trained models with stored data."""
+    ### Parameters:
+    :param plot_dict: Dictionary containing user-defined macros for the cleaning stage.
+    :param save_path: System location to save user-generated plots.
+    :param data_path: System location containing trained models and relevant data.
+
+    ### Returns:
+    :return: [(plugin_path, tag_list, plotting_tag, save_path)]
+    - Positional value of each index in a tuple contained in the scatterable list:
+      - 0: "/path/to/plotting/plugin.py"
+      - 1: "/path/to/model/directories"
+      - 2: "plot_name"
+      - 3: "/location/to/save/plots" 
+    """
     root = list()
 
     for key in plot_dict:
@@ -106,12 +154,19 @@ def generate_clean(plot_dict, save_path, data_path):
     return root
 
 
-def slice(directive_list, mpi_size):
-    """Slice up a directive list up based on how many available workers there are.
+def slice(directive_list: List, mpi_size: int) -> List[List]:
+    """
+    Slice up a directive list into a number of chuncks.
+    The total number of chunks is determined by how many worker 
+    nodes are available in the MPI.COMM_WORLD.
     
-    Keyword arguments:
-    directive_list -- the directive list to slice into chunks.
-    mpi_size -- the size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size())."""
+    ### Parameters:
+    :param directive_list: Directive list to slice into chunks.
+    :param mpi_size: Size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+
+    ### Returns:
+    :return: List containing desired number of chunks.
+    """
     # Initialize empty list that will be returned to main.py
     root = list()
 
@@ -123,13 +178,20 @@ def slice(directive_list, mpi_size):
     return root
 
 
-def delegate(communicator, comm_size, sliced_directives):
-    """Delegate out a sliced directive list to how many workers are available.
+def delegate(communicator, comm_size: int, sliced_directives: List) -> List[int]:
+    """
+    Send task list to every available worker node in the MPI.COMM_WORLD.
+    Task list is sent using sliced directive list.
     
-    Keyword arguments:
-    communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
-    comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
-    sliced_directives -- sliced directive list to send to workers."""
+    ### Parameters:
+    :param communicator: Communicator variable used to communicate with nodes in the 
+    MPI.COMM_WORLD (typically comm = MPI.COMM_WORLD).
+    :param comm_size: Size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+    :param sliced_directives: Sliced directive list containing task to send to the worker nodes.
+
+    ### Returns:
+    :return: List containing the rank of each worker node in the MPI.COMM_WORLD.
+    """
     # Define node rank in order to send messages out
     node_rank = [i+1 for i in range(comm_size-1)]
 

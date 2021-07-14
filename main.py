@@ -1,17 +1,19 @@
-from mpi4py import MPI
 import json
-import sys
-import warnings
-import re
-import os
-from tqdm import tqdm
-import shutil
-import time
 import logging
+import os
+import re
+import shutil
 import subprocess
-from utils.workerops.preprocessing import preprocessing
-from utils.workerops.recombine import recombine
-from utils.workerops.paramfactory import train_factory, attack_factory, clean_factory
+import sys
+import time
+import warnings
+
+import joblib
+from mpi4py import MPI
+from tqdm import tqdm
+
+from utils.workerops.paramfactory import (attack_factory, clean_factory,
+                                          manip_factory, train_factory)
 
 
 # Deactivate warnings from Python unless requested at command line
@@ -34,15 +36,16 @@ if rank == 0:
     # PREPROCESSING: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
     from colorama import Fore, Style, init
+
+    from utils.macro import xml2dict as x2d
+    from utils.macro.unwrap import unwrap_attack, unwrap_train
+    from utils.managerops.compress import Compression
+    from utils.managerops.getpaths import getmodels
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
-    from utils.macro import xml2dict as x2d
-    from utils.macro.unwrap import unwrap_train, unwrap_attack
     from utils.workerops import scattershot as sst
-    from utils.managerops.getpaths import getmodels
-    from utils.managerops.compress import Compression
 
-    
+
     # Initialize colorama and define lambda functions
     init(autoreset=True)
     print_good = lambda x: print(Fore.GREEN + x)
@@ -116,6 +119,7 @@ if rank == 0:
     # TRAIN: launch training stage of the pipeline
     if train_control is not None:
         print_status("Launching training stage.")
+
         # Broadcast out to workers that we are now operating on the training stage
         skip.skip_train(comm, size, False)
 
@@ -141,14 +145,24 @@ if rank == 0:
                 gl.killmsg(comm, size, True)
                 raise FileNotFoundError(Fore.RED + "The dataset {} is not found. Please verify that you are using the correct file path.".format(macro[1])) 
 
-            # Check if path to plugin is absolute
+            # Check if path to model plugin is absolute
             if os.path.isabs(macro[5]) is False:
                 macro[5] = os.path.abspath(macro[5])
 
-            # Check if plugin exists
+            # Check if model plugin exists
             if os.path.isfile(macro[5]) is False:
                 gl.killmsg(comm, size, True)
                 raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(macro[5]))
+
+            # Loop through manipulations to check if data manipulation plugins exist
+            for manip in macro[6]:
+                for manip_tag in manip[1]:
+                    if os.path.isabs(manip_tag[1]["plugin"]) is False:
+                        manip_tag[1]["plugin"] = os.path.abspath(manip_tag[1]["plugin"])
+
+                    if os.path.isfile(manip_tag[1]["plugin"]) is False:
+                        gl.killmsg(comm, size, True)
+                        raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(manip_tag[1]["plugin"]))
 
             # Convert back to tuple
             train_macro_list[i] = tuple(macro)
@@ -187,6 +201,7 @@ if rank == 0:
     # ATTACK: launch attack stage of the pipeline
     if attack_control is not None:
         print_status("Launching attack stage.")
+
         # Broadcast out to workers that we are now operating on the attack stage
         skip.skip_attack(comm, size, False)
 
@@ -276,6 +291,7 @@ if rank == 0:
     # CLEAN: launch cleaning stage of the pipeline
     if clean_control is not None:
         print_status("Launching cleaning stage.")
+
         # Broadcast out to workers that we are now operating on the cleaning stage
         skip.skip_clean(comm, size, False)
 
@@ -413,43 +429,51 @@ elif rank == 1:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[9], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-1/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-1/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=1)
 
@@ -556,43 +580,51 @@ elif rank == 2:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-2/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-2/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=2)
 
@@ -699,43 +731,51 @@ elif rank == 3:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-3/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-3/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=3)
 
@@ -842,43 +882,51 @@ elif rank == 4:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-4/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-4/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Set sys.stdout back to its original output method
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=4)
 
@@ -985,43 +1033,51 @@ elif rank == 5:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-5/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-5/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=5)
 
@@ -1128,43 +1184,51 @@ elif rank == 6:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-6/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-6/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=6)
 
@@ -1271,43 +1335,51 @@ elif rank == 7:
             for task in task_list:
                 logger.warning("INFO: Beginning training of model {} using directive list {}.".format(task[2], task))
 
-                # Perform data manipulation using user specified data manipulation
-                feat, label = preprocessing(task[1], task[6], task[8])
-
-                # Reassign task[6], task[7], and task[8] if they set to None
-                task[6] = "default" if task[6] is None else task[6]
-                task[7] = "default" if task[7] is None else task[7]
-                task[8] = "default" if task[8] is None else task[8]
-
-                recomb = recombine(feat, label, save=True, save_path="data/" + task[0] + "/maniped_data", manip_tag=task[7])
-
-                # Created special directory for each individual manipulation
-                save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
-                if os.path.exists(save_path):
-                    shutil.rmtree(save_path, ignore_errors=True)
+                # Check if task[6], task[7], task[8], or task[9] is None
+                # If so, skip execution and tell user they need to mention something.
+                if task[6] is None or task[7] is None or task[8] is None or task[9] is None:
+                    logger.warning("ERROR: Skipping model {} because no manipulation was specified " +
+                                    "Please use the tag <vanilla tag='default1' /> or something similiar " +
+                                    "in your control file.")
+                    pass
 
                 else:
+                    manip_save_path = ROOT_PATH + "/data/" + task[0] + "/maniped_data"
+                    if os.path.exists(manip_save_path) is False:
+                        os.makedirs(manip_save_path, exist_ok=True)
+
+                    logger.warning("INFO: Using {} on dataset {} with parameters {}.".format(task[6], task[0], task[9]))
+
+                    # Perform data manipulation using manipulation plugin
+                    param_dict = manip_factory(task[1], task[7], task[9], manip_save_path, ROOT_PATH + "/data/.tmp", ROOT_PATH)
+                    maniped_pickle = subprocess.getoutput("{} {} {} {}".format(PYTHON_PATH, task[8], "train", param_dict))
+
+                    # Created special directory for each individual manipulation
+                    save_path = ROOT_PATH + "/data/" + task[0] + "/models/" + task[7]
+                    if os.path.exists(save_path):
+                        shutil.rmtree(save_path, ignore_errors=True)
+
                     os.makedirs(save_path, exist_ok=True)
 
-                # Create dictionary that will be passed to plugin
-                param_dict = train_factory(task[0], task[2], recomb, task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    # Create dictionary that will be passed to the training plugin
+                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
-                # Spawn plugin execution and block until the training section of the plugin has completed
-                logger.warning("INFO: Training model...")
-                file_output = "data/.logs/worker-7/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
-                logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
+                    # Spawn plugin execution and block until the training section of the plugin has completed
+                    logger.warning("INFO: Training model...")
+                    file_output = "data/.logs/worker-7/{}-{}-{}-{}.log".format(TIME, task[2], task[6], task[7])
+                    logger.warning("INFO: Saving output of {} for model {} to logfile {}.".format(task[5], task[2], file_output))
 
-                # Swap stdout to log file in order to prevent worker from writing out to the shell
-                fout = open(file_output, "wt")
+                    # Open a file that the training plugin can use for stdout and stderr
+                    fout = open(file_output, "wt")
 
-                try:
-                    subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
+                    try:
+                        subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
-                except subprocess.SubprocessError:
-                    logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                    except subprocess.SubprocessError:
+                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
 
-                # Close the appension for the log file
-                fout.close()
+                    # Close the file the training plugin is using to log stdout and stderr
+                    fout.close()
 
             comm.send(1, dest=0, tag=7)
 

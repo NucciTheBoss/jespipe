@@ -3,18 +3,20 @@
     <train>
         <dataset file="test/datasets/google-stock-xgb/xgb1.csv">
             <model plugin="plugins/models/RNN/LSTM.py">
-                <name>barebones_model</name>
+                <name value="barebones_model" />
 
-                <algorithm>LSTM</algorithm>
+                <algorithm value="LSTM" />
 
                 <parameters>
-                    <squence_length>12</squence_length>
-                    <batch_size>256</batch_size>
-                    <epochs>50</epochs>
-                    <validation_split>0.1</validation_split>
-                    <verbose>1</verbose>
-                    <learning_rate>0.001</learning_rate>
+                    <sequence_length type="int" value="12" />
+                    <batch_size type="int" value="256" />
+                    <epochs type="int" value="50" />
+                    <validation_split type="float" value="0.1" />
+                    <verbose type="bool" value="True" />
+                    <learning_rate type="float" value="0.001" />
                 </parameters>
+
+                <vanilla plugin="plugins/manip/many_to_one_vanilla.py" tag="vanilla1"/>
             </model>
         </dataset>
     </train>
