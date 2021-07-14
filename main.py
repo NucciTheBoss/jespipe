@@ -506,6 +506,9 @@ elif rank == 1:
             for task in task_list:
                 logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
                 # Grab max_change, min_change, and change_step from parameter dictionary
                 # Convert to Decimal clas to make float arithmetic more secure
                 max_change = Decimal(str(task[6]["max_change"]))
@@ -525,7 +528,7 @@ elif rank == 1:
                     logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
 
                     # Open file that the attack plugin can use as a log file
-                    file_output = "data/.logs/worker-1/{}-attack-{}-{}.log".format(TIME, task[2], task[3])
+                    file_output = "data/.logs/worker-1/{}-attack-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
                     logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                     fout = open(file_output, "wt")
 
@@ -543,7 +546,7 @@ elif rank == 1:
                 logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
 
                 # Open file that the training plugin can use as a log file during evaluation
-                file_output = "data/.logs/worker-1/{}-eval-{}-{}.log".format(TIME, task[2], task[3])
+                file_output = "data/.logs/worker-1/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
