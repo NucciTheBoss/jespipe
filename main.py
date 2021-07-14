@@ -551,7 +551,7 @@ elif rank == 1:
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
-                subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=file_output, stderr=file_output)
+                subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
                 # Close the training plugin log file
                 fout.close()
