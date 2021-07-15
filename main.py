@@ -545,6 +545,9 @@ elif rank == 1:
             for task in task_list:
                 logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
                 # Open file that the training plugin can use as a log file during evaluation
                 file_output = "data/.logs/worker-1/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
