@@ -142,16 +142,28 @@ def attack_train_factory(adver_features: List[str], model_labels: np.ndarray,
     return pickle_path
 
 
-def clean_factory() -> str:
+def clean_factory(models: List[str], plot_name: str, save_path: str, root_path: str) -> str:
     """
     Generate parameter dictionary that will be sent out to the cleaning plugins for the cleaning stage.
     Save as a pickle and return a file path reference to that pickle.
     
     ### Parameters:
-    - TODO
+    :param models: List of root model directories containing data for plots.
+    :param plot_name: Name to use for user-generated plot file.
+    :param save_path: System location save the adversarial examples.
+    :param root_path: Root directory of Jespipe.
 
     ### Returns:
     :return: System file path reference to pickled parameter dictionary.
     """
-    # TODO: Update this function once you revisit the cleaning stage next week
-    pass
+    d = dict()
+
+    d["model_list"] = models
+    d["plot_name"] = plot_name
+    d["save_path"] = save_path
+
+    # Establish path to file in .tmp directory and dump dictionary
+    pickle_path = root_path + "/data/.tmp/" + str(uuid.uuid4()) + ".pkl"
+    joblib.dump(d, pickle_path)
+
+    return pickle_path
