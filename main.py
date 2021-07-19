@@ -718,7 +718,7 @@ elif rank == 2:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -927,7 +927,7 @@ elif rank == 3:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1345,7 +1345,7 @@ elif rank == 5:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1554,7 +1554,7 @@ elif rank == 6:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1763,7 +1763,7 @@ elif rank == 7:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
