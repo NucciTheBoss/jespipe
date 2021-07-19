@@ -607,7 +607,6 @@ elif rank == 1:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -639,6 +638,24 @@ elif rank == 1:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-1/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=1)
 
         else:
@@ -816,7 +833,6 @@ elif rank == 2:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -848,6 +864,24 @@ elif rank == 2:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-2/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=2)
 
         else:
@@ -1025,7 +1059,6 @@ elif rank == 3:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -1057,6 +1090,24 @@ elif rank == 3:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-3/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=3)
 
         else:
@@ -1234,7 +1285,6 @@ elif rank == 4:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -1266,6 +1316,24 @@ elif rank == 4:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-4/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=4)
 
         else:
@@ -1443,7 +1511,6 @@ elif rank == 5:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -1475,6 +1542,24 @@ elif rank == 5:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-5/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=5)
 
         else:
@@ -1652,7 +1737,6 @@ elif rank == 6:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -1684,6 +1768,24 @@ elif rank == 6:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-6/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=6)
 
         else:
@@ -1861,7 +1963,6 @@ elif rank == 7:
                 except subprocess.SubprocessError:
                     logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
 
-
                 # Close the training plugin log file
                 fout.close()
 
@@ -1893,6 +1994,24 @@ elif rank == 7:
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
 
         if task_list != []:
+            logger.warning("INFO: Beginning cleaning stage plotting.")
+
+            for task in task_list:
+                logger.warning("INFO: Generating plot {}.".format(task[2]))
+                file_output = "data/.logs/worker-7/{}-plot-{}".format(TIME, task[2])
+                logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
+                fout = open(file_output, "wt")
+
+                clean_param = clean_factory(task[1], task[2], task[3], ROOT_PATH)
+
+                try:
+                    subprocess.run([PYTHON_PATH, task[0], "clean", clean_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Plotting failed. Please review logfile {} for error diagnostics.".format(file_output))
+
+                fout.close()
+
             comm.send(1, dest=0, tag=7)
 
         else:
