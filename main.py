@@ -346,6 +346,10 @@ if rank == 0:
                     raise FileNotFoundError(Fore.RED + "The plugin {} is not found. Please verify that you are using the correct file path.".format(
                         clean_control["plot"][key]["plugin"]))
 
+            # Create plot directory to save plots
+            print_info("Creating directory to save plots.")
+            os.makedirs("data/plots", exist_ok=True)
+
             print_info("Generating directive list for worker nodes.")
             # Generate and slice directive list that will be sent out to the workers
             clean_directive_list = sst.generate_clean(clean_control["plot"], ROOT_PATH + "/data/plots", ROOT_PATH + "/data")
