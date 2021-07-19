@@ -100,7 +100,7 @@ def attack_factory(name: str, model_path: str, model_test_features: np.ndarray, 
     d["name"] = name
     d["model_path"] = model_path
     d["model_test_features"] = model_test_features
-    d["params"] = attack_params
+    d["attack_params"] = attack_params
 
     # Append name to save path
     d["save_path"] = save_path + "/" + name

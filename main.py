@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import os
@@ -7,12 +8,14 @@ import subprocess
 import sys
 import time
 import warnings
+from decimal import Decimal
 
 import joblib
 from mpi4py import MPI
 from tqdm import tqdm
 
-from utils.workerops.paramfactory import (attack_factory, clean_factory,
+import utils.filesystem.getpaths as gp
+from utils.workerops.paramfactory import (attack_factory, attack_train_factory, clean_factory,
                                           manip_factory, train_factory)
 
 
@@ -40,7 +43,6 @@ if rank == 0:
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_attack, unwrap_train
     from utils.managerops.compress import Compression
-    from utils.managerops.getpaths import getmodels
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.workerops import scattershot as sst
@@ -252,7 +254,7 @@ if rank == 0:
 
             # If models do exist, autodetect the .h5 files and add to macro list
             print_info("Auto-detecting models for dataset {}.".format(macro[0]))
-            model_list = getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
+            model_list = gp.getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
             macro.append(model_list)
 
             attack_macro_list[i] = tuple(macro)
@@ -261,24 +263,61 @@ if rank == 0:
             os.makedirs("data/" + macro[0] + "/adver_examples", exist_ok=True)
 
         # Create directives for the worker nodes
-        print_info("Generating directive list for worker nodes.")
+        print_info("Generating adversarial generation directive list for worker nodes.")
         attack_directive_list = sst.generate_attack(attack_macro_list)
-        sliced_directive_list = sst.slice(attack_directive_list, size)
+        
+        # Loop through directive list and generate more directives based on the change step
+        adver_example_directive_list = list()
+        for directive in attack_directive_list:
+            max_change = Decimal(str(directive[6]["max_change"]))
+            min_change = Decimal(str(directive[6]["min_change"]))
+            change_step = Decimal(str(directive[6]["change_step"]))
+
+            # Construct perturbation steps list using max_change, min_change, and change_step
+            tmp_list = list()
+            while min_change <= max_change:
+                tmp_list.append(min_change); min_change += change_step
+
+            # Convert decimal values back to float values                
+            change_values = [float(i) for i in tmp_list]
+
+            # Expand directive list using change values
+            for change in change_values:
+                tmp_direct = copy.deepcopy(directive); tmp_direct = list(tmp_direct)
+                del tmp_direct[6]["max_change"]; del tmp_direct[6]["min_change"]; del tmp_direct[6]["change_step"]
+                tmp_direct[6].update({"change": change})
+                adver_example_directive_list.append(tuple(tmp_direct))
+
+        sliced_directive_list = sst.slice(adver_example_directive_list, size)
         
         # Broadcast that everything is good to go to the worker nodes
         gl.killmsg(comm, size, False)
 
-        print_info("Sending tasks to workers.")
+        print_info("Sending adversarial example generation tasks to workers.")
         # Follow greenlight up with task list
         node_rank = sst.delegate(comm, size, sliced_directive_list)
 
-        print_info("Blocking until all workers complete attack tasks.")
+        print_info("Blocking until all workers complete adversarial example generation tasks.")
         print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
             "on the complexity of your attack, batch size of your attack, number of attacks, etc.")
         
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Worker node task completion progress"):
+        for node in tqdm(node_rank, desc="Adversarial example generation task completion progress"):
+            node_status.append(comm.recv(source=node, tag=node))
+
+        print_info("Generating model evaluation directive list for worker nodes.")
+        sliced_directive_list = sst.slice(attack_directive_list, size)
+        print_info("Sending model evaluation directive list to worker nodes.")
+        node_rank = sst.delegate(comm, size, sliced_directive_list)
+
+        print_info("Blocking until all workers complete model evaluation tasks.")
+        print_dim_info("Warning: This procedure may take a few minutes to a couple hours to complete depending " +
+            "on the number of models, size of adversarial examples, number of adversarial examples, etc.")
+
+        # Block until manager hears back from all workers
+        node_status = list()
+        for node in tqdm(node_rank, desc="Model evaluation task completion progress"):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Attack stage complete!")
@@ -470,7 +509,7 @@ elif rank == 1:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the plugin is using to log stdout and stderr
                     fout.close()
@@ -495,6 +534,8 @@ elif rank == 1:
             logger.warning("ERROR: Received greenlight message {} for attack stage. Aborting execution.".format(attack_greenlight))
             exit(127)
 
+        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+
         # Receive task from manager
         task_list = comm.recv(source=0, tag=1)
         logger.warning("INFO: Received task list {} from manager.".format(task_list))
@@ -502,11 +543,32 @@ elif rank == 1:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
-            # Evaluate model using adversarial examples
-            for task in task_list:
-                pass
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-1/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=1)
 
@@ -514,7 +576,42 @@ elif rank == 1:
             logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
             comm.send(1, dest=0, tag=1)
 
-        logger.warning("INFO: Received greenlight {}. Beginning execution of model attack stage.".format(attack_greenlight))
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=1)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
+            # Evaluate model using adversarial examples
+            for task in task_list:
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-1/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=1)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=1)
 
     else:
         logger.warning("WARNING: Skipping attack stage of pipeline.")
@@ -621,7 +718,7 @@ elif rank == 2:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -655,11 +752,69 @@ elif rank == 2:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-2/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=2)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=2)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=2)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-2/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=2)
 
@@ -772,7 +927,7 @@ elif rank == 3:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -806,11 +961,69 @@ elif rank == 3:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-3/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=3)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=3)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=3)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-3/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=3)
 
@@ -957,11 +1170,69 @@ elif rank == 4:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-4/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=4)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=4)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=4)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-4/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=4)
 
@@ -1074,7 +1345,7 @@ elif rank == 5:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1108,11 +1379,69 @@ elif rank == 5:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-5/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=5)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=5)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=5)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-5/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=5)
 
@@ -1225,7 +1554,7 @@ elif rank == 6:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1259,11 +1588,69 @@ elif rank == 6:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-6/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=6)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=6)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=6)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-6/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
 
             comm.send(1, dest=0, tag=6)
 
@@ -1376,7 +1763,7 @@ elif rank == 7:
                         subprocess.run([PYTHON_PATH, task[5], "train", param_dict], stdout=fout, stderr=fout)
 
                     except subprocess.SubprocessError:
-                        logger.warning("ERROR: Build for model {} failed. Please review the above output for error diagnostics.".format(task[2]))
+                        logger.warning("ERROR: Build for model {} failed. Please review logfile {} for error diagnostics.".format(task[2], file_output))
 
                     # Close the file the training plugin is using to log stdout and stderr
                     fout.close()
@@ -1410,12 +1797,70 @@ elif rank == 7:
         if task_list != []:
             # Generate adversarial examples
             for task in task_list:
-                pass
+                logger.warning("INFO: Beginning adversarial attack on model {} with attack {}".format(task[7], task[2]))
 
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Get change value
+                change = task[6]["change"]
+
+                logger.warning("INFO: Generating adversial example with minimum change set to {}.".format(change))
+
+                # Open file that the attack plugin can use as a log file
+                file_output = "data/.logs/worker-7/{}-attack-{}-{}-{}-{}.log".format(TIME, task[2], task[3], model_name, change)
+                logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
+                fout = open(file_output, "wt")
+
+                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                                                ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
+                
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Attack on model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+                # Close the attack plugin log file
+                fout.close()
+
+            comm.send(1, dest=0, tag=7)
+
+        else:
+            logger.warning("WARNING: Received empty task list. Returning status 1 to manager.")
+            comm.send(1, dest=0, tag=7)
+
+        # Receive second task list from manager
+        task_list = comm.recv(source=0, tag=7)
+        logger.warning("INFO: Received task list {} from manager.".format(task_list))
+
+        if task_list != []:
             # Evaluate model using adversarial examples
             for task in task_list:
-                pass
-            
+                logger.warning("INFO: Beginning evaluation of model {} using adversarial examples.".format(task[7]))
+
+                # Get model name
+                model_name = task[7].split("/"); model_name = model_name[-1].split("."); model_name = model_name[0]
+
+                # Open file that the training plugin can use as a log file during evaluation
+                file_output = "data/.logs/worker-7/{}-eval-{}-{}-{}.log".format(TIME, task[2], task[3], model_name)
+                logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
+                fout = open(file_output, "wt")
+
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
+                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                try:
+                    subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
+
+                except subprocess.SubprocessError:
+                    logger.warning("ERROR: Evaluation for model {} failed. Please review logfile {} for error diagnostics.".format(model_name, file_output))
+
+
+                # Close the training plugin log file
+                fout.close()
+
             comm.send(1, dest=0, tag=7)
 
         else:
