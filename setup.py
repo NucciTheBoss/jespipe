@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name="jespipe",
     version="0.0.1",
-    description="Build and use manipulation, machine learning, attack, and plotting with the Jespipe system",
+    description="Build and use manipulation, machine learning, attack, and plotting plguins with the Jespipe system",
     url="https://github.com/NucciTheBoss/jespipe",
     author="Jason C. Nucciarone",
     author_email="nucci.programming@gmail.com",
