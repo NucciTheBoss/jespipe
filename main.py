@@ -15,9 +15,9 @@ from mpi4py import MPI
 from tqdm import tqdm
 
 import utils.filesystem.getpaths as gp
-from utils.workerops.paramfactory import (attack_factory, attack_train_factory, clean_factory,
-                                          manip_factory, train_factory)
-
+from utils.workerops.paramfactory import (attack_factory, attack_train_factory,
+                                          clean_factory, manip_factory,
+                                          train_factory)
 
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
@@ -43,9 +43,9 @@ if rank == 0:
 
     from utils.appinfo.licenseinfo import licenseinfo
     from utils.appinfo.versioninfo import versioninfo
-    from utils.macro import xml2dict as x2d
-    from utils.macro.unwrap import unwrap_attack, unwrap_train
+    from utils.managerops import xml2dict as x2d
     from utils.managerops.compress import Compression
+    from utils.managerops.unwrap import unwrap_attack, unwrap_train
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.workerops import scattershot as sst
