@@ -74,15 +74,21 @@ if rank == 0:
     parser.add_argument("xml_control_file", nargs="?", default=None)
     args = parser.parse_args()
 
-    if args.version is True:
+    if args.version:
         versioninfo("Jespipe-v0.0.1", "2021", "LICENSE", "https://github.com/NucciTheBoss/jespipe",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany", ascii_banner="assets/ascii_banner.txt")
         exit()
 
-    if args.license is True:
+    if args.license:
         licenseinfo("Jespipe: An easy-to-use application for conducting adversarial machine learning analysis.", "2021",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
         exit()
+
+    stdout_bak = sys.stdout; stderr_bak = sys.stderr
+    if args.silent:
+        # Write stdout and stderr to /dev/null on host system
+        dev_null = open("/dev/null", "wt")
+        sys.stdout = dev_null; sys.stderr = dev_null
 
     # Check that there is at least more than one node in the
     # MPI.COMM_WORLD if we are not just print version or licensing info.
@@ -472,6 +478,10 @@ if rank == 0:
         skip.skip_clean(comm, size, True)
 
     print_good("Jespipe has completed!")
+
+    if args.silent:
+        # Reset stdout and stderr back to their original values
+        sys.stdout = stdout_bak; sys.stderr = stderr_bak
 
 elif rank == 1:
     greenlight = comm.recv(source=0, tag=1)
