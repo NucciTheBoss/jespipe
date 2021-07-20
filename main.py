@@ -116,25 +116,23 @@ if rank == 0:
 
     # Read in marco XML file
     print_info("Checking if macro XML file passed at command line.")
-    if len(sys.argv) != 2:
+    if args.xml_control_file is None:
         gl.killmsg(comm, size, True)
         raise ValueError(Fore.RED + "No macro XML file specified before launching pipeline.")
 
-    print_info("Loading macro XML file {}.".format(sys.argv[1]))
-    macro_file = sys.argv[1]
-
+    print_info("Loading macro XML file {}.".format(args.xml_control_file))
     # Perform checks to verify that XML file is in good format
-    if re.search("\Wxml", macro_file):
+    if re.search("\Wxml", args.xml_control_file):
         pass
 
     else:
         gl.killmsg(comm, size, True)
-        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(macro_file))
+        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(args.xml_control_file))
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
-    print_info("Parsing macro file {} in control dictionaries.".format(macro_file))
+    print_info("Parsing macro file {} into control dictionaries.".format(args.xml_control_file))
     try:
-        job_control = x2d.xml2dict(macro_file, config)
+        job_control = x2d.xml2dict(args.xml_control_file, config)
 
     except:
         gl.killmsg(comm, size, True)
@@ -228,7 +226,7 @@ if rank == 0:
         
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Worker node task completion progress"):
+        for node in tqdm(node_rank, desc="Model training task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Training stage complete!")
@@ -341,7 +339,7 @@ if rank == 0:
         
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Adversarial example generation task completion progress"):
+        for node in tqdm(node_rank, desc="Adversarial example generation task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_info("Generating model evaluation directive list for worker nodes.")
@@ -355,7 +353,7 @@ if rank == 0:
 
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Model evaluation task completion progress"):
+        for node in tqdm(node_rank, desc="Model evaluation task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Attack stage complete!")
@@ -405,7 +403,7 @@ if rank == 0:
                 "complexity of the data being anaylzed, format of the plot, etc.")
             # Block until hearing back from all the worker nodes
             node_status = list()
-            for node in tqdm(node_rank, desc="Worker node task completion progress"):
+            for node in tqdm(node_rank, desc="Data plotting task completion progress", disable=args.noprogress):
                 node_status.append(comm.recv(source=node, tag=node))
 
         else:
@@ -424,35 +422,35 @@ if rank == 0:
 
                 # Create archive based on user-specified compression algorithm
                 if clean_control["compress"][key]["format"] == "gzip":
-                    compressor.togzip()
+                    compressor.togzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
                 elif clean_control["compress"][key]["format"] == "bz2":
-                    compressor.tobzip()
+                    compressor.tobzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.bz2".format(key), "{}/{}.tar.bz2".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "zip":
-                    compressor.tozip()
+                    compressor.tozip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.zip".format(key), "{}/{}.zip".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "xz":
-                    compressor.toxz()
+                    compressor.toxz(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.xz".format(key), "{}/{}.tar.xz".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "tar":
-                    compressor.totar()
+                    compressor.totar(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
@@ -460,7 +458,7 @@ if rank == 0:
 
                 else:
                     # Catch all for if user passes invalid compression algorithm
-                    compressor.togzip()
+                    compressor.togzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
