@@ -118,7 +118,7 @@ def xml2dict(xml_file: str, config_dict: dict) -> dict:
                                 try:
                                     d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": content["plugin"]})
 
-                                except AttributeError:
+                                except KeyError:
                                     try:
                                         d["train"][data_name][model_name["value"]][manip][content["tag"]].update({"plugin": config_dict["plugins"]["datamanips"][content.name]})
 

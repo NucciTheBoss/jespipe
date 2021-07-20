@@ -15,9 +15,9 @@ from mpi4py import MPI
 from tqdm import tqdm
 
 import utils.filesystem.getpaths as gp
-from utils.workerops.paramfactory import (attack_factory, attack_train_factory, clean_factory,
-                                          manip_factory, train_factory)
-
+from utils.workerops.paramfactory import (attack_factory, attack_train_factory,
+                                          clean_factory, manip_factory,
+                                          train_factory)
 
 # Deactivate warnings from Python unless requested at command line
 if not sys.warnoptions:
@@ -43,9 +43,9 @@ if rank == 0:
 
     from utils.appinfo.licenseinfo import licenseinfo
     from utils.appinfo.versioninfo import versioninfo
-    from utils.macro import xml2dict as x2d
-    from utils.macro.unwrap import unwrap_attack, unwrap_train
+    from utils.managerops import xml2dict as x2d
     from utils.managerops.compress import Compression
+    from utils.managerops.unwrap import unwrap_attack, unwrap_train
     from utils.workeradmin import greenlight as gl
     from utils.workeradmin import skip
     from utils.workerops import scattershot as sst
@@ -54,6 +54,7 @@ if rank == 0:
     # Initialize colorama and define lambda functions
     init(autoreset=True)
     print_good = lambda x: print(Fore.GREEN + x)
+    print_dim_good = lambda x: print(Fore.GREEN + Style.DIM + x)
     print_info = lambda x: print(Fore.BLUE + x)
     print_dim_info = lambda x: print(Fore.BLUE + Style.DIM + x)
     print_bad = lambda x: print(Fore.RED + x)
@@ -61,11 +62,12 @@ if rank == 0:
 
 
     # Initialize argument parser
-    description = ""
-    epilog = ""
+    fin = open("assets/description.txt"); desc = fin.read(); fin.close()
+    fin = open("assets/epilog.txt"); epilog = fin.read(); fin.close()
     parser = argparse.ArgumentParser(prog="jespipe",
-                                        description="",
-                                        epilog="")
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        description=desc,
+                                        epilog=epilog)
     parser.add_argument("--license", action="store_true", default=False, help="Print Jespipe licensing info.")
     parser.add_argument("-s", "--silent", action="store_true", default=False, help="Silence all output from Jespipe.")
     parser.add_argument("-np", "--noprogress", action="store_true", default=False, help="Activate or deactivate progress bars (default: False).")
@@ -73,16 +75,30 @@ if rank == 0:
     parser.add_argument("xml_control_file", nargs="?", default=None)
     args = parser.parse_args()
 
-    if args.version is True:
+    if args.version:
         versioninfo("Jespipe-v0.0.1", "2021", "LICENSE", "https://github.com/NucciTheBoss/jespipe",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany", ascii_banner="assets/ascii_banner.txt")
         exit()
 
-    if args.license is True:
-        licenseinfo("Jespipe: An easy-to-use application for conducting adversarial machine learning analysis.", "2021",
+    if args.license:
+        licenseinfo("Jespipe: An easy-to-use system for conducting adversarial machine learning analysis.", "2021",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
         exit()
 
+    stdout_bak = sys.stdout; stderr_bak = sys.stderr
+    if args.silent:
+        # Write stdout and stderr to /dev/null on host system
+        dev_null = open("/dev/null", "wt")
+        sys.stdout = dev_null; sys.stderr = dev_null
+
+    # Check that there is at least more than one node in the
+    # MPI.COMM_WORLD if we are not just print version or licensing info.
+    print_dim_info("Checking if there are enough nodes available in the MPI.COMM_WORLD.")
+    if size <= 1:
+        raise RuntimeError(Fore.RED + "Not enough nodes in the MPI.COMM_WORLD. Detect only {} node(s). Jespipe needs =< 2 nodes to run properly.".format(size))
+
+    else:
+        print_dim_good("Detected {} nodes. Number of Manager nodes: {}. Number of Worker nodes: {}.".format(size, 1, size-1))
 
     # Check if we are working in the same directory as main.py.
     # If not, throw error as that will impact the pipelines ability to run.
@@ -107,25 +123,23 @@ if rank == 0:
 
     # Read in marco XML file
     print_info("Checking if macro XML file passed at command line.")
-    if len(sys.argv) != 2:
+    if args.xml_control_file is None:
         gl.killmsg(comm, size, True)
         raise ValueError(Fore.RED + "No macro XML file specified before launching pipeline.")
 
-    print_info("Loading macro XML file {}.".format(sys.argv[1]))
-    macro_file = sys.argv[1]
-
+    print_info("Loading macro XML file {}.".format(args.xml_control_file))
     # Perform checks to verify that XML file is in good format
-    if re.search("\Wxml", macro_file):
+    if re.search("\Wxml", args.xml_control_file):
         pass
 
     else:
         gl.killmsg(comm, size, True)
-        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(macro_file))
+        raise ValueError(Fore.RED + "Specified macro file {} not in XML format.".format(args.xml_control_file))
     
     # Convert macro XML file to dictionary to begin staging for the pipeline
-    print_info("Parsing macro file {} in control dictionaries.".format(macro_file))
+    print_info("Parsing macro file {} into control dictionaries.".format(args.xml_control_file))
     try:
-        job_control = x2d.xml2dict(macro_file, config)
+        job_control = x2d.xml2dict(args.xml_control_file, config)
 
     except:
         gl.killmsg(comm, size, True)
@@ -219,7 +233,7 @@ if rank == 0:
         
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Worker node task completion progress"):
+        for node in tqdm(node_rank, desc="Model training task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Training stage complete!")
@@ -332,7 +346,7 @@ if rank == 0:
         
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Adversarial example generation task completion progress"):
+        for node in tqdm(node_rank, desc="Adversarial example generation task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_info("Generating model evaluation directive list for worker nodes.")
@@ -346,7 +360,7 @@ if rank == 0:
 
         # Block until manager hears back from all workers
         node_status = list()
-        for node in tqdm(node_rank, desc="Model evaluation task completion progress"):
+        for node in tqdm(node_rank, desc="Model evaluation task completion progress", disable=args.noprogress):
             node_status.append(comm.recv(source=node, tag=node))
 
         print_good("Attack stage complete!")
@@ -396,7 +410,7 @@ if rank == 0:
                 "complexity of the data being anaylzed, format of the plot, etc.")
             # Block until hearing back from all the worker nodes
             node_status = list()
-            for node in tqdm(node_rank, desc="Worker node task completion progress"):
+            for node in tqdm(node_rank, desc="Data plotting task completion progress", disable=args.noprogress):
                 node_status.append(comm.recv(source=node, tag=node))
 
         else:
@@ -415,35 +429,35 @@ if rank == 0:
 
                 # Create archive based on user-specified compression algorithm
                 if clean_control["compress"][key]["format"] == "gzip":
-                    compressor.togzip()
+                    compressor.togzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.gz".format(key), "{}/{}.tar.gz".format(clean_control["compress"][key]["path"], key))
                 
                 elif clean_control["compress"][key]["format"] == "bz2":
-                    compressor.tobzip()
+                    compressor.tobzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.bz2".format(key), "{}/{}.tar.bz2".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "zip":
-                    compressor.tozip()
+                    compressor.tozip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.zip".format(key), "{}/{}.zip".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "xz":
-                    compressor.toxz()
+                    compressor.toxz(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
                         shutil.move("{}.tar.xz".format(key), "{}/{}.tar.xz".format(clean_control["compress"][key]["path"], key))
 
                 elif clean_control["compress"][key]["format"] == "tar":
-                    compressor.totar()
+                    compressor.totar(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
@@ -451,7 +465,7 @@ if rank == 0:
 
                 else:
                     # Catch all for if user passes invalid compression algorithm
-                    compressor.togzip()
+                    compressor.togzip(verbose=not args.noprogress)
                     shutil.rmtree(key, ignore_errors=True)
 
                     if os.path.exists(clean_control["compress"][key]["path"]):
@@ -465,6 +479,10 @@ if rank == 0:
         skip.skip_clean(comm, size, True)
 
     print_good("Jespipe has completed!")
+
+    if args.silent:
+        # Reset stdout and stderr back to their original values
+        sys.stdout = stdout_bak; sys.stderr = stderr_bak
 
 elif rank == 1:
     greenlight = comm.recv(source=0, tag=1)
