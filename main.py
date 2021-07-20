@@ -36,10 +36,13 @@ PYTHON_PATH = subprocess.getoutput("which python")
 
 
 if rank == 0:
-    # PREPROCESSING: neccesary preprocessing before beginning the execution of the pipeline
     # Imports only necessary for manager node
+    import argparse
+
     from colorama import Fore, Style, init
 
+    from utils.appinfo.licenseinfo import licenseinfo
+    from utils.appinfo.versioninfo import versioninfo
     from utils.macro import xml2dict as x2d
     from utils.macro.unwrap import unwrap_attack, unwrap_train
     from utils.managerops.compress import Compression
@@ -57,7 +60,30 @@ if rank == 0:
     print_status = lambda x: print(Fore.YELLOW + x)
 
 
-    print_status("Launching preprocessing stage.")
+    # Initialize argument parser
+    description = ""
+    epilog = ""
+    parser = argparse.ArgumentParser(prog="jespipe",
+                                        description="",
+                                        epilog="")
+    parser.add_argument("--license", action="store_true", default=False, help="Print Jespipe licensing info.")
+    parser.add_argument("-s", "--silent", action="store_true", default=False, help="Silence all output from Jespipe.")
+    parser.add_argument("-np", "--noprogress", action="store_true", default=False, help="Activate or deactivate progress bars (default: False).")
+    parser.add_argument("-V", "--version", action="store_true", default=False, help="Print Jespipe version info.")
+    parser.add_argument("xml_control_file", nargs="?", default=None)
+    args = parser.parse_args()
+
+    if args.version is True:
+        versioninfo("Jespipe-v0.0.1", "2021", "LICENSE", "https://github.com/NucciTheBoss/jespipe",
+                    "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany", ascii_banner="assets/ascii_banner.txt")
+        exit()
+
+    if args.license is True:
+        licenseinfo("Jespipe: An easy-to-use application for conducting adversarial machine learning analysis.", "2021",
+                    "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
+        exit()
+
+
     # Check if we are working in the same directory as main.py.
     # If not, throw error as that will impact the pipelines ability to run.
     print_info("Checking if running out of same directory as {}".format(sys.argv[0]))
@@ -65,6 +91,9 @@ if rank == 0:
     if sys.argv[0] not in cwd_contents:
         gl.killmsg(comm, size, True)
         raise OSError(Fore.RED + "Not in same directory as {}. Please change current working directory to where {} is located.".format(sys.argv[0], sys.argv[0]))
+    
+    # PREPROCESSING: neccesary preprocessing before beginning the execution of the pipeline
+    print_status("Launching preprocessing stage.")
 
     # Read in config to get default configurations file
     print_info("Loading configuration file {}.".format(CONFIG_FILE))
