@@ -1,11 +1,14 @@
-def skip_train(communicator, comm_size, yes=False):
-    """Broadcast out to workers if skipping training section of pipeline.
+def skip_train(communicator, comm_size: int, yes=False) -> None:
+    """
+    Broadcast out to workers if skipping training stage of Jespipe.
     Send 1 if skipping training stage; send 0 if executing.
     
-    Keyword arguments:
-    communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
-    comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
-    yes -- skip or do not skip training stage. True: skip training stage. False: do not skip training stage (default: False)."""
+    ### Parameters:
+    :param communicator: Communicator variable used to communicate with nodes in the 
+    MPI.COMM_WORLD (typically comm = MPI.COMM_WORLD).
+    :param comm_size: Size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+    :param yes: Skip or do not skip training stage. True: skip training stage. False: do not skip training stage (default: False).
+    """
     node_rank = [i+1 for i in range(comm_size-1)]
     if yes is True:
         msg = [1**1 for j in range(comm_size-1)]
@@ -22,14 +25,17 @@ def skip_train(communicator, comm_size, yes=False):
             node_iter += 1
 
 
-def skip_attack(communicator, comm_size, yes=False):
-    """Broadcast out to workers if skipping attack section of pipeline.
+def skip_attack(communicator, comm_size: int, yes=False) -> None:
+    """
+    Broadcast out to workers if skipping attack stage of Jespipe.
     Send 1 if skipping training stage; send 0 if executing.
     
-    Keyword arguments:
-    communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
-    comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
-    yes -- skip or do not skip attack stage. True: skip attack stage. False: do not skip attack stage (default: False)."""
+    ### Parameters:
+    :param communicator: Communicator variable used to communicate with nodes in the 
+    MPI.COMM_WORLD (typically comm = MPI.COMM_WORLD).
+    :param comm_size: Size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+    :param yes: Skip or do not skip attack stage. True: skip attack stage. False: do not skip attack stage (default: False).
+    """
     node_rank = [i+1 for i in range(comm_size-1)]
     if yes is True:
         msg = [1**1 for j in range(comm_size-1)]
@@ -46,14 +52,17 @@ def skip_attack(communicator, comm_size, yes=False):
             node_iter += 1
 
 
-def skip_clean(communicator, comm_size, yes=False):
-    """Broadcast out to workers if skipping cleaning section of pipeline.
+def skip_clean(communicator, comm_size: int, yes=False) -> None:
+    """
+    Broadcast out to workers if skipping cleaning stage of Jespipe.
     Send 1 if skipping cleaning stage; send 0 if executing.
     
-    Keyword arguments:
-    communicator -- comm variable used to communicate with nodes (typically comm = MPI.COMM_WORLD).
-    comm_size -- how many nodes exist in the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
-    yes -- skip or do not skip attack stage. True: skip attack stage. False: do not skip attack stage (default: False)."""
+    ### Parameters:
+    :param communicator: Communicator variable used to communicate with nodes in the 
+    MPI.COMM_WORLD (typically comm = MPI.COMM_WORLD).
+    :param comm_size: Size of the MPI.COMM_WORLD (typically MPI.COMM_WORLD.Get_size()).
+    :param yes: Skip or do not skip attack stage. True: skip attack stage. False: do not skip attack stage (default: False).
+    """
     node_rank = [i+1 for i in range(comm_size-1)]
     if yes is True:
         msg = [1**1 for j in range(comm_size-1)]
