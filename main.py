@@ -62,11 +62,12 @@ if rank == 0:
 
 
     # Initialize argument parser
-    description = ""
-    epilog = ""
+    fin = open("assets/description.txt"); desc = fin.read(); fin.close()
+    fin = open("assets/epilog.txt"); epilog = fin.read(); fin.close()
     parser = argparse.ArgumentParser(prog="jespipe",
-                                        description="",
-                                        epilog="")
+                                        formatter_class=argparse.RawDescriptionHelpFormatter,
+                                        description=desc,
+                                        epilog=epilog)
     parser.add_argument("--license", action="store_true", default=False, help="Print Jespipe licensing info.")
     parser.add_argument("-s", "--silent", action="store_true", default=False, help="Silence all output from Jespipe.")
     parser.add_argument("-np", "--noprogress", action="store_true", default=False, help="Activate or deactivate progress bars (default: False).")
@@ -80,7 +81,7 @@ if rank == 0:
         exit()
 
     if args.license:
-        licenseinfo("Jespipe: An easy-to-use application for conducting adversarial machine learning analysis.", "2021",
+        licenseinfo("Jespipe: An easy-to-use system for conducting adversarial machine learning analysis.", "2021",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
         exit()
 

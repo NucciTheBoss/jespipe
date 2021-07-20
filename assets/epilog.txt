@@ -1,0 +1,18 @@
+Command Quick Reference:
+--------------------------
+
+- Launch Jespipe:
+    mpirun -n $NUM_OF_NODES python main.py /path/to/xml/control/file.xml
+
+- No progress bar run:
+    mpirun -n $NUM_OF_NODES python main.py -np /path/to/xml/control/file.xml
+
+- Silent run:
+    mpirun -n $NUM_OF_NODES python main.py -s /path/to/xml/control/file.xml
+
+Online Resources:
+-------------------
+
+Bug Reporting: https://github.com/NucciTheBoss/jespipe/issues
+Discussions: https://github.com/NucciTheBoss/jespipe/discussions
+Documentation: https://github.com/NucciTheBoss/jespipe/wiki

@@ -18,7 +18,7 @@ def versioninfo(name: str, year: str, show_w: str, show_c: str, *args, **kwargs)
     # Print out banner
     banner_path = kwargs.get("ascii_banner") if "ascii_banner" in kwargs else None
     if banner_path is not None and os.path.isfile(banner_path):
-        fout = open(banner_path, "rt"); banner = fout.read(); fout.close()
+        fin = open(banner_path, "rt"); banner = fin.read(); fin.close()
         print(banner, "\n")
 
     # Print program name, copyright year, and authors
