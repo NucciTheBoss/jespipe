@@ -54,6 +54,7 @@ if rank == 0:
     # Initialize colorama and define lambda functions
     init(autoreset=True)
     print_good = lambda x: print(Fore.GREEN + x)
+    print_dim_good = lambda x: print(Fore.GREEN + Style.DIM + x)
     print_info = lambda x: print(Fore.BLUE + x)
     print_dim_info = lambda x: print(Fore.BLUE + Style.DIM + x)
     print_bad = lambda x: print(Fore.RED + x)
@@ -83,6 +84,14 @@ if rank == 0:
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
         exit()
 
+    # Check that there is at least more than one node in the
+    # MPI.COMM_WORLD if we are not just print version or licensing info.
+    print_dim_info("Checking if there are enough nodes available in the MPI.COMM_WORLD.")
+    if size <= 1:
+        raise RuntimeError(Fore.RED + "Not enough nodes in the MPI.COMM_WORLD. Detect only {} node(s). Jespipe needs =< 2 nodes to run properly.".format(size))
+
+    else:
+        print_dim_good("Detected {} nodes. Number of Manager nodes: {}. Number of Worker nodes: {}.".format(size, 1, size-1))
 
     # Check if we are working in the same directory as main.py.
     # If not, throw error as that will impact the pipelines ability to run.
