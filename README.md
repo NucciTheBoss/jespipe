@@ -40,6 +40,7 @@ The recommended runtime environment for Jespipe is on High-Performance Computing
 | **Number of Processor Cores:** | Bare minimum: 2 cores - 4 threads; Recommended: 8 cores - 16 threads |
 | **RAM:** | Bare minimum: 4GB; Recommended: 16GB |
 | **GPU:** | *Not required but recommended for larger-scale models and computationally instensive attacks.* |
+| **GCC Version:** | GCC version 8.3.1 or greater |
 | **Python Version:** | 3.5+, 3.8+, 3.9.5, or 3.9.6 |
 
 **It is strongly recommended** that you use Jespipe on a High-Performance Computing cluster because while Jespipe's system resource consumption is minimal, under-powered machines will be quickly overwhelmed by large-scale adversarial analyses.
