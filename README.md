@@ -121,7 +121,7 @@ pip install -r requirements.txt
 python setup.py install
 ```
 
-#### Test
+#### Test Installation:
 
 If all went well, you should be able to print out Jespipe's version info without issue:
 
@@ -140,7 +140,8 @@ $ python main.py --version
 
 Jespipe-v0.0.1  Copyright (C) 2021  Jason C. Nucciarone, Eric Inae, Sheila Alemany
 
-This program comes with ABSOLUTELY NO WARRANTY; for details please see the LICENSE file. This is free software, and you are welcome to redistribute it
+This program comes with ABSOLUTELY NO WARRANTY; for details please see the LICENSE file. 
+This is free software, and you are welcome to redistribute it
 under certain conditions; please visit https://github.com/NucciTheBoss/jespipe for more details.
 ```
 
