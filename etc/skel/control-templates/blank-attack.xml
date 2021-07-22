@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>    
+<simu>
+    <!-- Models must be trained and available before executing attack stage -->
+    <attack>
+        <dataset file="/path/to/some/file.csv">
+
+            <CW_L2 plugin="" model_plugin="" tag="">
+                <!-- Attack parameters go here (if any) -->
+            </CW_L2>
+            <!-- Can include multiple attacks for a data set -->
+
+        </dataset>
+        <!-- Can include multiple data sets in the attack stage -->
+    </attack>
+</simu>

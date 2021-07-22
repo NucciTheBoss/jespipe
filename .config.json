@@ -1,19 +1,19 @@
 {
     "plugins": {
         "algorithms": {
-            "LSTM": "plugins/models/RNN/LSTM.py"
+            "LSTM": "examples/plugins/models/RNN/LSTM.py"
         },
 
         "datamanips": {
-            "xgboost": "plugins/manip/many_to_one_xgb.py",
-            "randomforest": "plugins/manip/many_to_one_randomforest.py",
-            "pca": "plugins/manip/many_to_one_pca.py",
-            "candlestick": "plugins/manip/many_to_one_candlestick.py",
-            "vanilla": "plugins/manip/many_to_one_vanilla.py"
+            "xgboost": "examples/plugins/manip/many_to_one_xgb.py",
+            "randomforest": "examples/plugins/manip/many_to_one_randomforest.py",
+            "pca": "examples/plugins/manip/many_to_one_pca.py",
+            "candlestick": "examples/plugins/manip/many_to_one_candlestick.py",
+            "vanilla": "examples/plugins/manip/many_to_one_vanilla.py"
         },
 
         "attacks":{
-            "CW_L2": "plugins/attack/carlinil2.py"
+            "CW_L2": "examples/plugins/attack/carlinil2.py"
         }
     },
 
@@ -70,7 +70,7 @@
         "compress": {
             "format": "gzip",
             "name": "default",
-            "path": "~/Documents"
+            "path": "."
         }
     }
 }

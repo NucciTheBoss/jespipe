@@ -1,11 +1,29 @@
 {
+    "plugins": {
+        "algorithms": {
+            "LSTM": "examples/plugins/models/RNN/LSTM.py"
+        },
+
+        "datamanips": {
+            "xgboost": "examples/plugins/manip/many_to_one_xgb.py",
+            "randomforest": "examples/plugins/manip/many_to_one_randomforest.py",
+            "pca": "examples/plugins/manip/many_to_one_pca.py",
+            "candlestick": "examples/plugins/manip/many_to_one_candlestick.py",
+            "vanilla": "examples/plugins/manip/many_to_one_vanilla.py"
+        },
+
+        "attacks":{
+            "CW_L2": "examples/plugins/attack/carlinil2.py"
+        }
+    },
+
     "algorithms": {
-        "RNN": {
-            "squence_length": 12,
+        "LSTM": {
+            "sequence_length": 12,
             "batch_size": 256,
             "epochs": 50,
             "validation_split": 0.1,
-            "verbose": 1,
+            "verbose": true,
             "learning_rate": 0.001
         }
     },
@@ -25,40 +43,34 @@
 
         "candlestick": {
             "time_interval": 20
+        },
+
+        "vanilla": {
+            "placeholder": 1
         }
     },
 
     "attacks": {
-        "CW_inf": {
-            "confidence": 0.0,
-            "targeted": 0,
-            "learning_rate": 0.01,
-            "max_iter": 10,
-            "max_halving": 5,
-            "max_doubling": 5,
-            "batch_size": 128,
-            "verbose": 1,
-            "max_eps": 1,
-            "eps_step": 0.1
-        },
-
-        "BIM": {
+        "CW_L2": {
+            "max_change": 0.2,
+            "min_change": 0.05,
+            "change_step": 0.025,
+            "learning_rate": 0.001,
             "max_iter": 100,
-            "targeted": 0,
-            "batch_size": 32,
-            "verbose": 1,
-            "max_eps": 1,
-            "eps_step": 0.1
-        },
-
-        "FGSM": {
-            "norm": "inf",
-            "targeted": 0,
-            "num_random_int": 0,
-            "batch_size": 32,
-            "minimal": 0,
-            "max_eps": 1,
-            "eps_step": 0.1
+            "binary_search_steps": 9,
+            "batch_size": 20,
+            "initial_const": 1,
+            "sequence_length": 60,
+            "verbose": true
         }
-    }       
+    },
+    
+    "clean": {
+        "clean_tmp": 1,
+        "compress": {
+            "format": "gzip",
+            "name": "default",
+            "path": "."
+        }
+    }
 }
