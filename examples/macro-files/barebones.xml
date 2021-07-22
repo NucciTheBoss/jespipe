@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <train>
-        <dataset file="test/datasets/google-stock-xgb/xgb1.csv">
+        <dataset file="examples/datasets/google-stock-xgb/xgb1.csv">
             <model plugin="plugins/models/RNN/LSTM.py">
                 <name value="barebones_model" />
 
@@ -16,7 +16,7 @@
                     <learning_rate type="float" value="0.001" />
                 </parameters>
 
-                <vanilla plugin="plugins/manip/many_to_one_vanilla.py" tag="vanilla1"/>
+                <vanilla plugin="plugins/manip/many_to_one_vanilla.py" tag="vanilla1"></vanilla>
             </model>
         </dataset>
     </train>

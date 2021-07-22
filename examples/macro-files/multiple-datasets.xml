@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <train>
-        <dataset file="test/datasets/google-stock/google-clean.csv">
+        <dataset file="examples/datasets/google-stock/google-clean.csv">
             <model plugin="plugins/models/RNN/LSTM.py">
                 <name value="google-stock-LSTM" />
 
@@ -32,7 +32,7 @@
             </model>
         </dataset>
 
-        <dataset file="test/datasets/ozone-level-detection/ozone-level-clean.csv">
+        <dataset file="examples/datasets/ozone-level-detection/ozone-level-clean.csv">
             <model plugin="plugins/models/RNN/LSTM.py">
                 <name value="ozone-avg-wind-speed" />
 

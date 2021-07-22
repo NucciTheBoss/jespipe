@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <attack>
-        <dataset file="test/datasets/google-stock/google-clean.csv">
+        <dataset file="examples/datasets/google-stock/google-clean.csv">
             <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
                 <max_change type="float" value="0.2" />
                 <min_change type="float" value="0.05" />
