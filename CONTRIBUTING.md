@@ -113,6 +113,24 @@ You can use the [Bug Report template](https://github.com/NucciTheBoss/jespipe/is
 
 Feature requests to improve/extend are welcome, but please take a moment to determine whether your idea with the scope and aim of Jespipe. It is up to *you* to make a strong case to convince Jespipe's developers of the merits of adding this feature to Jespipe. Please provide as much detail and context as possible.
 
+Example Feature Request:
+
+> Short and descriptive feature request title
+> 
+> ### Is your feature request related to a problem? Please describe:
+> A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]; No, but I would love if Jespipe could do [...]; No, but I think this process could be improved; etc.
+> 
+> ### Describe the solution you'd like:
+> A clear and concise description of what you want to happen. Ex. If I enter  this command, this should happen [...].
+> 
+> ### Describe alternatives you've considered:
+> A clear and concise description of any alternative solutions or features > you've considered.
+> 
+> #### Additional context:
+> Add any other context or screenshots about the feature request here.
+
+You can use the [Feature Request template](https://github.com/NucciTheBoss/jespipe/issues/new?assignees=NucciTheBoss&labels=enhancement%2C+question&template=feature-request.md&title=FEATURE+REQUEST%3A+Potential+improvement+to+Jespipe) to submit feature requests to the Jespipe developers.
+
 ## Pull Requests
 
 Good pull requests&mdash;patches, improvements, new features&mdash;are a huge help. These pull requests should remain focused in scope and should not contain unrelated commits.
