@@ -16,7 +16,7 @@ class Attack(Attack):
         ### Parameters:
         :param model: File path to trained model being attacked. Model will need to be loaded back into memory.
         :param features: Features to use for adversarial examples.
-        :param parameters: Parameter dictionary sent by Jespipe when plugin is called.
+        :param parameters: Parameter dictionary for the attack.
 
         #### Notes:
         - You can add internal methods to help perform your attack.
