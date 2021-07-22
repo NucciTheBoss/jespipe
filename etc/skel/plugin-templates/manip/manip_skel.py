@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import jespipe.plugin.save as save # Provides routines for saving data created during the training, attack, and clean stages.
+import jespipe.plugin.save as save  # Provides routines for saving data created during the training, attack, and clean stages.
 from jespipe.plugin.manip.manip import Manipulation  # Defines abstract skeleton for writing your own data manipulations
 from jespipe.plugin.start import start # Reads in parameters sent by Jespipe when your plugin is called.
 
