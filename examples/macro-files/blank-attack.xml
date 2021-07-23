@@ -14,6 +14,19 @@
                 <sequence_length type="int" value="60" />
                 <verbose type="bool" value="True" />
             </CW_L2>
+            <CW_Linf>
+                <max_change type="float" value="0.2" />
+                <min_change type="float" value="0.05" />
+                <change_step type="float" value="0.025" />
+                <learning_rate type="float" value="0.001" />
+                <max_iter type="int" value="300" />
+                <batch_size type="int" value="5" />
+                <initial_cost type="float" value="0.1" />
+                <largest_const type="int" value="100" />
+                <sequence_length type="int" value="36" />
+                <decrease_factor type="float" value="0.9" />
+                <verbose type="bool" value="True" />
+            </CW_Linf>
         </dataset>
     </attack>
 </simu>
