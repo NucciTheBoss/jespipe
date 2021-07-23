@@ -646,7 +646,7 @@ elif rank == 1:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -872,7 +872,7 @@ elif rank == 2:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -1098,7 +1098,7 @@ elif rank == 3:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -1324,7 +1324,7 @@ elif rank == 4:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -1550,7 +1550,7 @@ elif rank == 5:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -1776,7 +1776,7 @@ elif rank == 6:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
@@ -2002,7 +2002,7 @@ elif rank == 7:
 
                 adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
                 test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
-                train_attack_param = attack_train_factory(adver_examples, joblib.load(test_labels), 
+                train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
                                                             task[8] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)

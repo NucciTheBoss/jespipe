@@ -154,6 +154,7 @@ if __name__ == "__main__":
 
         ### Parameter dictionary content:
         - `adver_features`: List containing file paths to adversarial examples for the model.
+        - `attack_name`: Name of the attack that the model is being evaluated on.
         - `model_labels`: Test labels to use for evaluation of model's adversarial robustness.
         - `log_path`: The file path to use for saving your evaluation data. (Important to your adversarial analysis).
         - `model_path`: Path to your saved model file in HDF5 format. (Loaded back into memory during the evaluation).
