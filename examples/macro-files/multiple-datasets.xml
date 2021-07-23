@@ -2,7 +2,7 @@
 <simu>
     <train>
         <dataset file="examples/datasets/google-stock/google-clean.csv">
-            <model plugin="plugins/models/RNN/LSTM.py">
+            <model plugin="examples/plugins/models/RNN/LSTM.py">
                 <name value="google-stock-LSTM" />
 
                 <algorithm value="LSTM" />
@@ -16,24 +16,24 @@
                     <learning_rate type="float" value="0.001" />
                 </parameters>
                 
-                <xgboost plugin="plugins/manip/many_to_one_xgb.py" tag="xgb1">
+                <xgboost plugin="examples/plugins/manips/many_to_one_xgb.py" tag="xgb1">
                     <n_features type="int" value="3" />
                 </xgboost>
 
-                <randomforest plugin="plugins/manip/many_to_one_randomforest.py" tag="rf1"></randomforest>
+                <randomforest plugin="examples/plugins/manips/many_to_one_randomforest.py" tag="rf1"></randomforest>
                 
-                <pca plugin="plugins/manip/many_to_one_pca.py" tag="pca1">
+                <pca plugin="examples/plugins/manips/many_to_one_pca.py" tag="pca1">
                     <n_features type="int" value="3" />
                 </pca>
 
-                <candlestick plugin="plugins/manip/many_to_one_candlestick.py" tag="cand1">
+                <candlestick plugin="examples/plugins/manips/many_to_one_candlestick.py" tag="cand1">
                     <time_interval type="int" value="20" />
                 </candlestick>
             </model>
         </dataset>
 
         <dataset file="examples/datasets/ozone-level-detection/ozone-level-clean.csv">
-            <model plugin="plugins/models/RNN/LSTM.py">
+            <model plugin="examples/plugins/models/RNN/LSTM.py">
                 <name value="ozone-avg-wind-speed" />
 
                 <algorithm value="LSTM" />
@@ -47,17 +47,17 @@
                     <learning_rate type="float" value="0.001" />
                 </parameters>
 
-                <xgboost plugin="plugins/manip/many_to_one_xgb.py" tag="xgb1-ozone">
+                <xgboost plugin="examples/plugins/manips/many_to_one_xgb.py" tag="xgb1-ozone">
                     <n_features type="int" value="11" />
                 </xgboost>
                 
-                <randomforest plugin="plugins/manip/many_to_one_randomforest.py" tag="rf1-ozone"></randomforest>
+                <randomforest plugin="examples/plugins/manips/many_to_one_randomforest.py" tag="rf1-ozone"></randomforest>
 
-                <pca plugin="plugins/manip/many_to_one_pca.py" tag="pca1-ozone">
+                <pca plugin="examples/plugins/manips/many_to_one_pca.py" tag="pca1-ozone">
                     <n_features type="int" value="11" />
                 </pca>
 
-                <candlestick plugin="plugins/manip/many_to_one_candlestick.py" tag="cand1-ozone">
+                <candlestick plugin="examples/plugins/manips/many_to_one_candlestick.py" tag="cand1-ozone">
                     <time_interval type="int" value="20" />
                 </candlestick>
             </model>

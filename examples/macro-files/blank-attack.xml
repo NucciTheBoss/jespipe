@@ -2,7 +2,7 @@
 <simu>
     <attack>
         <dataset file="examples/datasets/google-stock/google-clean.csv">
-            <CW_L2 plugin="plugins/attack/carlinil2.py" model_plugin="plugins/models/RNN/LSTM.py" tag="cw_l2_1">
+            <CW_L2 plugin="examples/plugins/attacks/carlinil2.py" model_plugin="examples/plugins/models/RNN/LSTM.py" tag="cw_l2_1">
                 <max_change type="float" value="0.2" />
                 <min_change type="float" value="0.05" />
                 <change_step type="float" value="0.025" />
