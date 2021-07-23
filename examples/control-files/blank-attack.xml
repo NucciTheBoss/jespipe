@@ -14,7 +14,7 @@
                 <sequence_length type="int" value="60" />
                 <verbose type="bool" value="True" />
             </CW_L2>
-            <CW_Linf>
+            <CW_Linf plugin="examples/plugins/attacks/carlinilinf.py" model_plugin="examples/plugins/models/RNN/LSTM.py" tag="cw_linf_1">
                 <max_change type="float" value="0.2" />
                 <min_change type="float" value="0.05" />
                 <change_step type="float" value="0.025" />
