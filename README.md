@@ -1,5 +1,5 @@
 <p align="center">
-    <i>Image for branding?</i>
+    <img src="./assets/jespipe-logo.png" width=400>
 </p>
 
 <h3 align="center">Jespipe</h3>
