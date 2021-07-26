@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <train>
+        <dataset file="">
+            <model plugin="">
+
+                <name value="" />
+
+                <algorithm value="" />
+
+                <parameters>
+                    <!-- Model parameters go here -->
+                </parameters>
+                
+                <xgboost tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </xgboost>
+
+                <randomforest tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </randomforest>
+                
+                <pca tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </pca>
+
+                <candlestick tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </candlestick>
+
+                <vanilla tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </vanilla>
+
+            </model>
+            <!-- Can include multiple models for a data set -->
+            
+        </dataset>
+        <!-- Can include multiple data sets in the training stage -->
+    </train>
+
+    <!-- Models must be trained and available before executing attack stage -->
+    <attack>
+        <dataset file="/path/to/some/file.csv">
+
+            <CW_L2 plugin="" model_plugin="" tag="">
+                <!-- Attack parameters go here (if any) -->
+            </CW_L2>
+            <!-- Can include multiple attacks for a data set -->
+
+        </dataset>
+        <!-- Can include multiple data sets in the attack stage -->
+    </attack>
+
+    <clean>
+        <clear_tmp />
+        
+        <plot plugin="" tag="">
+            <!-- Value must correspond to the tag of a trained model -->
+            <tag value="" />
+            <!-- Can include multiple tags -->
+        </plot>
+        <!-- Can have multiple plots in clean stage -->
+
+        <compress>
+            <!-- Available options: bzip2, gzip, tar, xz, zip -->
+            <format value="" />
+
+            <name value="" />
+
+            <!-- File path must be absolute (Ex. /home/jason/Documents) -->
+            <path value="" />
+        </compress>
+    </clean>
+</simu>

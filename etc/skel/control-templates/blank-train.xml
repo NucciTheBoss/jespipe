@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <train>
+        <dataset file="">
+            <model plugin="">
+
+                <name value="" />
+
+                <algorithm value="" />
+
+                <parameters>
+                    <!-- Model parameters go here -->
+                </parameters>
+                
+                <xgboost tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </xgboost>
+
+                <randomforest tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </randomforest>
+                
+                <pca tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </pca>
+
+                <candlestick tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </candlestick>
+
+                <vanilla tag="">
+                    <!-- Manipulation parameters go here (if any) -->
+                </vanilla>
+
+            </model>
+            <!-- Can include multiple models for a data set -->
+            
+        </dataset>
+        <!-- Can include multiple data sets in the training stage -->
+    </train>
+</simu>

@@ -112,7 +112,7 @@ def attack_factory(name: str, model_path: str, model_test_features: np.ndarray, 
     return pickle_path
 
 
-def attack_train_factory(adver_features: List[str], model_labels: np.ndarray, 
+def attack_train_factory(adver_features: List[str], attack_name: str, model_labels: np.ndarray, 
                             log_path: str, model_path: str, root_path: str) -> str:
     """
     Create parameter dictionary that will be sent out to the user-specified training plugin 
@@ -120,6 +120,7 @@ def attack_train_factory(adver_features: List[str], model_labels: np.ndarray,
     
     ### Parameters:
     :param adver_features: List containing system file path references to adversarial data for attack.
+    :param attack_name: Name for the attack that the model is being evaulated on.
     :param model_labels: The target feature(s) to evaluate the model on.
     :param log_path: System location to save data collected on model during attack.
     :param model_path: System file path of model.
@@ -131,6 +132,7 @@ def attack_train_factory(adver_features: List[str], model_labels: np.ndarray,
     d = dict()
 
     d["adver_features"] = adver_features
+    d["attack_name"] = attack_name
     d["model_labels"] = model_labels
     d["log_path"] = log_path
     d["model_path"] = model_path

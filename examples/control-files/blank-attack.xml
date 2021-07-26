@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <attack>
+        <dataset file="examples/datasets/google-stock/google-clean.csv">
+            <CW_L2 plugin="examples/plugins/attacks/carlinil2.py" model_plugin="examples/plugins/models/RNN/LSTM.py" tag="cw_l2_1">
+                <max_change type="float" value="0.2" />
+                <min_change type="float" value="0.05" />
+                <change_step type="float" value="0.025" />
+                <learning_rate type="float" value="0.001" />
+                <max_iter type="int" value="100" />
+                <binary_search_steps type="int" value="9" />
+                <batch_size type="int" value="20" />
+                <initial_cost type="int" value="1" />
+                <sequence_length type="int" value="60" />
+                <verbose type="bool" value="True" />
+            </CW_L2>
+            <CW_Linf plugin="examples/plugins/attacks/carlinilinf.py" model_plugin="examples/plugins/models/RNN/LSTM.py" tag="cw_linf_1">
+                <max_change type="float" value="0.2" />
+                <min_change type="float" value="0.05" />
+                <change_step type="float" value="0.025" />
+                <learning_rate type="float" value="0.001" />
+                <max_iter type="int" value="300" />
+                <batch_size type="int" value="5" />
+                <initial_cost type="float" value="0.1" />
+                <largest_const type="int" value="100" />
+                <sequence_length type="int" value="36" />
+                <decrease_factor type="float" value="0.9" />
+                <verbose type="bool" value="True" />
+            </CW_Linf>
+        </dataset>
+    </attack>
+</simu>

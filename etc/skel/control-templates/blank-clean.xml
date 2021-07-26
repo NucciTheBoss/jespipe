@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simu>
+    <clean>
+        <clear_tmp />
+        
+        <plot plugin="" tag="">
+            <!-- Value must correspond to the tag of a trained model -->
+            <tag value="" />
+            <!-- Can include multiple tags -->
+        </plot>
+        <!-- Can have multiple plots in clean stage -->
+
+        <compress>
+            <!-- Available options: bzip2, gzip, tar, xz, zip -->
+            <format value="" />
+
+            <name value="" />
+
+            <!-- File path must be absolute (Ex. /home/jason/Documents) -->
+            <path value="" />
+        </compress>
+    </clean>
+</simu>

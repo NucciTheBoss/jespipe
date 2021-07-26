@@ -15,7 +15,7 @@ Use the following commands to install Python 3.9.5 from source on Ursula:
 wget https://www.python.org/ftp/python/3.9.5/Python-3.9.5.tgz
 tar -xzvf Python-3.9.5.tgz
 cd Python-3.9.5
-./configure --enable-shared --enable-optimizations --prefix=$HOME/sw/python-3.9.5
+./configure --enable-shared --prefix=$HOME/sw/python-3.9.5
 make && make install
 cd .. && rm -rf Python-3.9.5 Python-3.9.5.tgz
 ```

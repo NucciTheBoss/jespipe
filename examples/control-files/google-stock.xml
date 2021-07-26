@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simu>
     <train>
-        <dataset file="test/datasets/google-stock/google-clean.csv">
-            <model plugin="plugins/models/RNN/LSTM.py">
+        <dataset file="examples/datasets/google-stock/google-clean.csv">
+            <model plugin="examples/plugins/models/RNN/LSTM.py">
                 <name value="barebones_model" />
 
                 <algorithm value="LSTM" />
@@ -16,17 +16,17 @@
                     <learning_rate type="float" value="0.001" />
                 </parameters>
                 
-                <xgboost plugin="plugins/manip/many_to_one_xgb.py" tag="xgb1">
+                <xgboost plugin="examples/plugins/manips/many_to_one_xgb.py" tag="xgb1">
                     <n_features type="int" value="3" />
                 </xgboost>
 
-                <randomforest plugin="plugins/manip/many_to_one_randomforest.py" tag="rf1"></randomforest>
+                <randomforest plugin="examples/plugins/manips/many_to_one_randomforest.py" tag="rf1"></randomforest>
                 
-                <pca plugin="plugins/manip/many_to_one_pca.py" tag="pca1">
+                <pca plugin="examples/plugins/manips/many_to_one_pca.py" tag="pca1">
                     <n_features type="int" value="3" />
                 </pca>
 
-                <candlestick plugin="plugins/manip/many_to_one_candlestick.py" tag="cand1">
+                <candlestick plugin="examples/plugins/manips/many_to_one_candlestick.py" tag="cand1">
                     <time_interval type="int" value="20" />
                 </candlestick>
             </model>

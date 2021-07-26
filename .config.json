@@ -1,19 +1,20 @@
 {
     "plugins": {
         "algorithms": {
-            "LSTM": "plugins/models/RNN/LSTM.py"
+            "LSTM": "examples/plugins/models/RNN/LSTM.py"
         },
 
         "datamanips": {
-            "xgboost": "plugins/manip/many_to_one_xgb.py",
-            "randomforest": "plugins/manip/many_to_one_randomforest.py",
-            "pca": "plugins/manip/many_to_one_pca.py",
-            "candlestick": "plugins/manip/many_to_one_candlestick.py",
-            "vanilla": "plugins/manip/many_to_one_vanilla.py"
+            "xgboost": "examples/plugins/manips/many_to_one_xgb.py",
+            "randomforest": "examples/plugins/manips/many_to_one_randomforest.py",
+            "pca": "examples/plugins/manips/many_to_one_pca.py",
+            "candlestick": "examples/plugins/manips/many_to_one_candlestick.py",
+            "vanilla": "examples/plugins/manips/many_to_one_vanilla.py"
         },
 
         "attacks":{
-            "CW_L2": "plugins/attack/carlinil2.py"
+            "CW_L2": "examples/plugins/attacks/carlinil2.py",
+            "CW_Linf": "examples/plugins/attacks/carlinilinf.py"
         }
     },
 
@@ -62,6 +63,20 @@
             "initial_const": 1,
             "sequence_length": 60,
             "verbose": true
+        },
+
+        "CW_Linf":{
+            "max_change": 0.2,
+            "min_change": 0.05,
+            "change_step": 0.025,
+            "learning_rate": 0.001,
+            "max_iter": 300,
+            "batch_size": 5,
+            "initial_const": 0.1,
+            "largest_const": 100,
+            "sequence_length": 36,
+            "decrease_factor": 0.9,
+            "verbose": true
         }
     },
     
@@ -70,7 +85,7 @@
         "compress": {
             "format": "gzip",
             "name": "default",
-            "path": "~/Documents"
+            "path": "."
         }
     }
 }
