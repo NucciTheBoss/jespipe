@@ -298,6 +298,15 @@ if rank == 0:
             # If models do exist, autodetect the .h5 files and add to macro list
             print_info("Auto-detecting models for dataset {}.".format(macro[0]))
             model_list = gp.getmodels(ROOT_PATH + "/data/" + macro[0] + "/models", format=".h5")
+
+            # Loop through the model list and pull the model names
+            model_names = list()
+            for model in model_list:
+                tmp = model.split("/models/"); tmp = tmp[-1].split("/")
+                model_name = tmp[0]
+                model_names.append(model_name)
+
+            model_list = list(zip(model_list, model_names))
             macro.append(model_list)
 
             attack_macro_list[i] = tuple(macro)
@@ -609,8 +618,8 @@ elif rank == 1:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -644,10 +653,10 @@ elif rank == 1:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -689,7 +698,7 @@ elif rank == 1:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-1/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-1/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -835,8 +844,8 @@ elif rank == 2:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -870,10 +879,10 @@ elif rank == 2:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -915,7 +924,7 @@ elif rank == 2:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-2/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-2/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1061,8 +1070,8 @@ elif rank == 3:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -1096,10 +1105,10 @@ elif rank == 3:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -1141,7 +1150,7 @@ elif rank == 3:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-3/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-3/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1287,8 +1296,8 @@ elif rank == 4:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -1322,10 +1331,10 @@ elif rank == 4:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -1367,7 +1376,7 @@ elif rank == 4:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-4/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-4/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1513,8 +1522,8 @@ elif rank == 5:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -1548,10 +1557,10 @@ elif rank == 5:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -1593,7 +1602,7 @@ elif rank == 5:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-5/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-5/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1739,8 +1748,8 @@ elif rank == 6:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -1774,10 +1783,10 @@ elif rank == 6:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -1819,7 +1828,7 @@ elif rank == 6:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-6/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-6/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1965,8 +1974,8 @@ elif rank == 7:
                 logger.warning("INFO: Saving output of {} for attack {} to logfile {}.".format(task[3], task[2], file_output))
                 fout = open(file_output, "wt")
 
-                test_features = gp.gettestfeat(task[8], feature_file="test_features.pkl")
-                attack_param = attack_factory(task[3], task[7], joblib.load(test_features), task[6], 
+                test_features = gp.gettestfeat(task[9], feature_file="test_features.pkl")
+                attack_param = attack_factory(task[3], task[7], task[8], joblib.load(test_features), task[6], 
                                                 ROOT_PATH + "/data/" + task[0] + "/adver_examples", ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[4], "attack", attack_param], stdout=fout, stderr=fout)
@@ -2000,10 +2009,10 @@ elif rank == 7:
                 logger.warning("INFO: Saving output of {} evaluation logfile {}.".format(task[7], file_output))
                 fout = open(file_output, "wt")
 
-                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3])
-                test_labels = gp.gettestlabel(task[8], label_file="test_labels.pkl")
+                adver_examples = gp.getfiles(ROOT_PATH + "/data/" + task[0] + "/adver_examples/" + task[3] + "/" + task[8])
+                test_labels = gp.gettestlabel(task[9], label_file="test_labels.pkl")
                 train_attack_param = attack_train_factory(adver_examples, task[3], joblib.load(test_labels), 
-                                                            task[8] + "/stat", task[7], ROOT_PATH)
+                                                            task[9] + "/stat", task[7], ROOT_PATH)
                 try:
                     subprocess.run([PYTHON_PATH, task[5], "attack", train_attack_param], stdout=fout, stderr=fout)
 
@@ -2045,7 +2054,7 @@ elif rank == 7:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-7/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-7/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 

@@ -78,7 +78,7 @@ def train_factory(name: str, model_name: str, dataframe: pd.DataFrame, model_par
     return pickle_path
 
 
-def attack_factory(name: str, model_path: str, model_test_features: np.ndarray, attack_params: dict, 
+def attack_factory(name: str, model_path: str, model_tag: str, model_test_features: np.ndarray, attack_params: dict, 
                     save_path: str, root_path: str) -> str:
     """
     Create parameter dictionary that will be sent out to the user-specified attack plugin 
@@ -87,6 +87,7 @@ def attack_factory(name: str, model_path: str, model_test_features: np.ndarray, 
     ### Parameters:
     :param name: Name of the attack.
     :param model_path: System file path of model to attack.
+    :param model_tag: Tag used to uniquely identify models.
     :param model_test_features: The data to manipulate for the attack.
     :param attack_params: Parameters to use for the attack.
     :param save_path: System location save the adversarial examples.
@@ -103,7 +104,7 @@ def attack_factory(name: str, model_path: str, model_test_features: np.ndarray, 
     d["attack_params"] = attack_params
 
     # Append name to save path
-    d["save_path"] = save_path + "/" + name
+    d["save_path"] = save_path + "/" + name + "/" + model_tag
 
     # Establish path to file in .tmp directory and dump dictionary
     pickle_path = root_path + "/data/.tmp/" + str(uuid.uuid4()) + ".pkl"
