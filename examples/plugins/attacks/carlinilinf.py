@@ -52,41 +52,28 @@ class CarliniLinf(Attack):
     def _generate(self, x: np.ndarray, **kwargs) -> np.ndarray:
         """
         Internal method to perform the L_inf attack on the given time series data.
-
         ### Parameters:
         :param x: An array with the original inputs to be attacked.
-
         ### Returns:
         :return: An array holding the adversarial examples.
         """
-        num_rows, num_cols = x.shape
-        
-        # Reformat test set to include sequence length
-        x_sequence = []
-        for i in range(len(x)-self.sequence_length):
-            s = []
-            for j in range(0, self.sequence_length):
-                s.append(x[[(i + j)], :])
-            x_sequence.append(s)
-        x_sequence = np.array(x_sequence)
-        x_sequence = x_sequence.reshape(x_sequence.shape[0],self.sequence_length, num_cols)
-        
+        pred = self.model.predict(x)
+        self.mean = pred.mean()
+
         # Generate adversarial examples
-        x_adv = np.zeros(x_sequence.shape)
-        nb_batches = int(np.ceil(x_sequence.shape[0] / float(self.batch_size)))
+        x_adv = np.zeros(x.shape)
+        nb_batches = int(np.ceil(x.shape[0] / float(self.batch_size)))
         for i in trange(nb_batches, desc="C&W L_inf", disable = not self.verbose):
             index = i * self.batch_size
-            x_adv[index:index+self.batch_size] = (self._generate_batch(x_sequence[index:index+self.batch_size]))
+            x_adv[index:index+self.batch_size] = (self._generate_batch(x[index:index+self.batch_size]))
         print(x_adv.shape)
         return x_adv
     
     def _generate_batch(self, x: np.ndarray, **kwargs) -> np.ndarray:
         """
         Internal method to generate batched adversarial samples and return them in an array.
-
         ### Parameters:
         :param x: An array with the batched original inputs to be attacked.
-
         ### Returns:
         :return: An array holding the batched adversarial examples.
         """
@@ -100,7 +87,14 @@ class CarliniLinf(Attack):
         # Initialize boolean to decide if advesarial examples should predict above or below original
         # Since the adv examples are normalized between [0,1], adv examples that predict values approaching 0 or 1 are difficult to generate, hence the bool
         mean = pred.mean()
-        above = (mean <= .5)
+        above = (mean <= self.mean)
+
+        if above:
+            if mean + self.min_change > 0.9:
+                above = False
+        else:
+            if mean - self.min_change < 0.1:
+                above = True
         
         # Initialize variable to optimize
         w = tf.Variable(np.zeros(x.shape), trainable=True, dtype=tf.float32)

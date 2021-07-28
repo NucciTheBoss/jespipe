@@ -10,7 +10,7 @@
                 <parameters>
                     <sequence_length type="int" value="12" />
                     <batch_size type="int" value="256" />
-                    <epochs type="int" value="50" />
+                    <epochs type="int" value="200" />
                     <validation_split type="float" value="0.1" />
                     <verbose type="bool" value="True" />
                     <learning_rate type="float" value="0.001" />
@@ -29,6 +29,8 @@
                 <candlestick plugin="examples/plugins/manips/many_to_one_candlestick.py" tag="cand1">
                     <time_interval type="int" value="20" />
                 </candlestick>
+
+                <vanilla plugin="examples/plugins/manips/many_to_one_vanilla.py" tag="vanilla1"></vanilla>
             </model>
         </dataset>
     </train>

@@ -2,7 +2,7 @@
 <simu>
     <clean>
         <clear_tmp />
-        <plot plugin="examples/plugins/plots/plot_rmse_mse.py" tag="plot1">
+        <plot plugin="examples/plugins/plots/plot_rmse_si_mae.py" tag="plot1">
             <tag value="xgb1" />
             <tag value="rf1" />
             <tag value="pca1" />
