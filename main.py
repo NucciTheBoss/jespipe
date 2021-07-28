@@ -698,7 +698,7 @@ elif rank == 1:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-1/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-1/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -924,7 +924,7 @@ elif rank == 2:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-2/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-2/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1150,7 +1150,7 @@ elif rank == 3:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-3/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-3/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1376,7 +1376,7 @@ elif rank == 4:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-4/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-4/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1602,7 +1602,7 @@ elif rank == 5:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-5/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-5/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -1828,7 +1828,7 @@ elif rank == 6:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-6/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-6/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
@@ -2054,7 +2054,7 @@ elif rank == 7:
 
             for task in task_list:
                 logger.warning("INFO: Generating plot {}.".format(task[2]))
-                file_output = "data/.logs/worker-7/{}-plot-{}".format(TIME, task[2])
+                file_output = "data/.logs/worker-7/{}-plot-{}.log".format(TIME, task[2])
                 logger.warning("INFO: Saving output of plotting plugin to logfile {}.".format(file_output))
                 fout = open(file_output, "wt")
 
