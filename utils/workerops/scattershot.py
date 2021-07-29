@@ -145,7 +145,7 @@ def generate_clean(plot_dict: dict, save_path: str, data_path: str) -> List[Tupl
         root_paths = gp.getdirs(data_path)
         for i in range(0, len(tag_list)):
             for path in root_paths:
-                if tag_list[i] in path:
+                if tag_list[i] in path and "adver_example" not in path:
                     tag_list[i] = path
                     break
 

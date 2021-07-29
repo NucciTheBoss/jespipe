@@ -1,20 +1,21 @@
-import math
 import random
+from dataclasses import dataclass
+from decimal import Decimal
 from typing import List, Tuple
 
 import joblib
-import matplotlib.colors as color
 import matplotlib.pyplot as plt
 import numpy as np
 from jespipe.plugin.start import start
 from jespipe.plugin.clean.plotter import Plot
 
 
-class MatplotColors:
-    """Class for selecting a random HTML color."""
-    def __init__(self) -> None:
-        """Create instance of MatplotColors class."""
-        self.html_colors = self._random_color_tuple()
+@dataclass
+class Tab10:
+    tab10: Tuple[str] = (
+        "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+        "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+    )
 
     def getrandomcolor(self) -> str:
         """
@@ -23,22 +24,11 @@ class MatplotColors:
         ### Returns:
         :return: Random hexdecimal color code supported by Matplotlib.
         """
-        return self.html_colors[random.randint(0, len(self.html_colors))]
+        return self.tab10[random.randint(0, len(self.tab10)-1)]
 
-    def _random_color_tuple(self) -> Tuple[str]:
-        """
-        Internal function to query supported colors by Matplotlib.
-
-        ### Returns:
-        :return: Tuple containing the supported hexadecimal color codes.
-        """
-        color_dict = color.get_named_colors_mapping()
-        color_tuple = tuple()
-        for key in color_dict:
-            if isinstance(color_dict[key], str):
-                color_tuple += (color_dict[key],)
-
-        return color_tuple
+    def __len__(self) -> int:
+        """Return length of the Tab10 tuple."""
+        return len(self.tab10)
 
 
 class RmseSiMae(Plot):
@@ -100,13 +90,13 @@ class RmseSiMae(Plot):
                 rmse_values.append(data_dict[key]["rmse"])
 
             # Generate 10 ticks for the y_axis
-            y_axis_1_ticks = np.linspace(0.0, float(math.ceil(max(rmse_values))), num=10)
+            y_axis_ticks = np.linspace(0.0, 0.6, num=10, endpoint=True)
 
             # Plot RMSE
             axis_1.plot(x_axis, rmse_values, color=ran_color_list[0], linestyle="solid")
             axis_1.set_xlabel("Perturbation Budget")
             axis_1.set_ylabel("Root Mean Squared Error (RMSE)", color=ran_color_list[0])
-            axis_1.set_yticks(y_axis_1_ticks)
+            axis_1.set_yticks(y_axis_ticks)
             
             for tick_label, tick_line in zip(axis_1.get_yticklabels(), axis_1.get_yticklines()):
                 tick_label.set_color(ran_color_list[0])
@@ -120,21 +110,19 @@ class RmseSiMae(Plot):
             for key in data_dict:
                 mae_values.append(data_dict[key]["mae"])
 
-            # Generate 10 ticks for the y_axis
-            y_axis_2_ticks = np.linspace(0.0, float(math.ceil(max(mae_values))), num=10)
 
             # Plot MAE
             axis_2.plot(x_axis, mae_values, color=ran_color_list[1], linestyle="solid")
             axis_2.set_ylabel("Mean Absolute Error (MAE)", color=ran_color_list[1])
-            axis_2.set_yticks(y_axis_2_ticks)
+            axis_2.set_yticks(y_axis_ticks)
             
             for tick_label, tick_line in zip(axis_2.get_yticklabels(), axis_2.get_yticklines()):
                 tick_label.set_color(ran_color_list[1])
                 tick_line.set_color(ran_color_list[1])
 
             model_tag = datum[0].split("/"); model_tag = model_tag[-1]
-            plt.title("RMSE and MAE as Perturbation Budget increases for CW_L2 attack on model {}".format(model_tag))
-            plt.savefig(self.save_path + "/{}-cw_l2-rmse-mae-{}.png".format(self.plot_name, model_tag), bbox_inches="tight")
+            plt.savefig(self.save_path + "/{}_rmse-and-mae-as-perturbation-budget-increases-for-cw_l2-attack-on-model-{}.png".format(self.plot_name, model_tag), 
+                        bbox_inches="tight")
             plt.close()
 
         # CW_Linf ATTACK
@@ -159,14 +147,11 @@ class RmseSiMae(Plot):
             for key in data_dict:
                 rmse_values.append(data_dict[key]["rmse"])
 
-            # Generate 10 ticks for the y_axis
-            y_axis_1_ticks = np.linspace(0.0, float(math.ceil(max(rmse_values))), num=10)
-
             # Plot RMSE
             axis_1.plot(x_axis, rmse_values, color=ran_color_list[0], linestyle="solid")
             axis_1.set_xlabel("Perturbation Budget")
             axis_1.set_ylabel("Root Mean Squared Error (RMSE)", color=ran_color_list[0])
-            axis_1.set_yticks(y_axis_1_ticks)
+            axis_1.set_yticks(y_axis_ticks)
 
             for tick_label, tick_line in zip(axis_1.get_yticklabels(), axis_1.get_yticklines()):
                 tick_label.set_color(ran_color_list[0])
@@ -180,29 +165,26 @@ class RmseSiMae(Plot):
             for key in data_dict:
                 mae_values.append(data_dict[key]["mae"])
 
-            # Generate 10 ticks for the y_axis
-            y_axis_2_ticks = np.linspace(0.0, float(math.ceil(max(mae_values))), num=10)
-
             # Plot MAE
             axis_2.plot(x_axis, mae_values, color=ran_color_list[1], linestyle="solid")
             axis_2.set_ylabel("Mean Absolute Error (MAE)", color=ran_color_list[1])
-            axis_2.set_yticks(y_axis_2_ticks)
+            axis_2.set_yticks(y_axis_ticks)
             
             for tick_label, tick_line in zip(axis_2.get_yticklabels(), axis_2.get_yticklines()):
                 tick_label.set_color(ran_color_list[1])
                 tick_line.set_color(ran_color_list[1])
             
             model_tag = datum[0].split("/"); model_tag = model_tag[-1]
-            plt.title("RMSE and MAE as Perturbation Budget increases for CW_Linf attack on model {}".format(model_tag))
-            plt.savefig(self.save_path + "/{}-cw_linf-rmse-mae-{}.png".format(self.plot_name, model_tag), bbox_inches="tight")
+            plt.savefig(self.save_path + "/{}_rmse-and-mae-as-perturbation-budget-increases-for-cw_linf-attack-on-model-{}.png".format(self.plot_name, model_tag),
+                        bbox_inches="tight")
             plt.close()
+            "RMSE and MAE as Perturbation Budget increases for CW_Linf attack on model {}".format(model_tag)
         
         # Scattter Index over the change budget
         # All the manipulations will be put on the same graph.
         # CW_L2 ATTACK
         plt.figure()
-        plt.xlabel("Perturbation Budget"); plt.ylabel("Scatter Index (in %)")
-        plt.title("Scatter Index as Perturbation Budget increases for CW_L2 attack")
+        plt.xlabel("Perturbation Budget"); plt.ylabel("Scatter Index")
         ran_color_list = self._random_color_picker(len(cw_l2_attack)); i = 0
 
         # Find maximum scatter index value
@@ -212,7 +194,7 @@ class RmseSiMae(Plot):
                 scatter_values.append(datum[1][key]["scatter_index"])
 
         # Generate y_axis ticks; generate 10 ticks
-        y_axis_ticks = np.linspace(0.0, float(math.ceil(max(scatter_values))), num=10)
+        y_axis_ticks = np.linspace(0.0, float(Decimal(str(max(scatter_values))) + Decimal("0.1")), num=10, endpoint=True)
         plt.yticks(y_axis_ticks)
 
         # Generate x_axis
@@ -232,17 +214,21 @@ class RmseSiMae(Plot):
 
             # Append values to the plot
             line_name = datum[0].split("/"); line_name = line_name[-1]
-            plt.plot(x_axis, values, color=ran_color_list[i], linestyle=self._random_linestyle(), label=line_name)
+            if "vanilla" in line_name:
+                plt.plot(x_axis, values, color=ran_color_list[i], linewidth=3, linestyle=self._random_linestyle(), label=line_name)
+
+            else:
+                plt.plot(x_axis, values, color=ran_color_list[i], linestyle=self._random_linestyle(), label=line_name)
+            
             i += 1
 
         plt.legend()
-        plt.savefig(self.save_path + "/{}-cw_l2-sci-pertur_budget.png".format(self.plot_name))
+        plt.savefig(self.save_path + "/{}_scatter-index-as-perturbation-budget-increases-for-cw_l2-attack.png".format(self.plot_name))
         plt.close()
 
         # CW_Linf ATTACK
         plt.figure()
-        plt.xlabel("Perturbation Budget"); plt.ylabel("Scatter Index (in %)")
-        plt.title("Scatter Index as Perturbation Budget increases for CW_Linf attack")
+        plt.xlabel("Perturbation Budget"); plt.ylabel("Scatter Index")
         ran_color_list = self._random_color_picker(len(cw_linf_attack)); i = 0
 
         # Find maximum scatter index value
@@ -252,7 +238,7 @@ class RmseSiMae(Plot):
                 scatter_values.append(datum[1][key]["scatter_index"])
 
         # Generate y_axis ticks; generate 10 ticks
-        y_axis_ticks = np.linspace(0.0, float(math.ceil(max(scatter_values))), num=10)
+        y_axis_ticks = np.linspace(0.0, float(Decimal(str(max(scatter_values))) + Decimal("0.1")), num=10, endpoint=True)
         plt.yticks(y_axis_ticks)
 
         # Generate x_axis
@@ -272,11 +258,16 @@ class RmseSiMae(Plot):
 
             # Append values to the plot
             line_name = datum[0].split("/"); line_name = line_name[-1]
-            plt.plot(x_axis, values, color=ran_color_list[i], linestyle=self._random_linestyle(), label=line_name)
+            if "vanilla" in line_name:
+                plt.plot(x_axis, values, color=ran_color_list[i], linewidth=3, linestyle=self._random_linestyle(), label=line_name)
+
+            else:   
+                plt.plot(x_axis, values, color=ran_color_list[i], linestyle=self._random_linestyle(), label=line_name)
+            
             i += 1
 
         plt.legend()
-        plt.savefig(self.save_path + "/{}-cw_linf-sci-perturb_budget.png".format(self.plot_name))
+        plt.savefig(self.save_path + "/{}_scatter-index-as-perturbation-budget-increases-for-cw_linf-attack.png".format(self.plot_name))
         plt.close()
 
     def _random_color_picker(self, num_of_categories: int) -> List[str]:
@@ -291,7 +282,10 @@ class RmseSiMae(Plot):
         :return: List of hexadecimal colors.
         """
         color_list = list()
-        color_picker = MatplotColors()
+        color_picker = Tab10()
+
+        if num_of_categories > len(color_picker):
+            raise IndexError("Requested number of colors {} > {}. Please use dataclass that has more colors available.")
 
         i = 0
         while i < num_of_categories:

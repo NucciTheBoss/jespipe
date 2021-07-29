@@ -11,9 +11,16 @@ setup(
     license="GNU General Public License version 3",
     packages=find_packages(),
     install_requires=[
+        "joblib",
+        "tqdm",
+        "matplotlib",
         "tensorflow",
         "Keras",
-        "numpy"
+        "numpy",
+        "pandas",
+        "xgboost",
+        "dataclasses",
+        "scikit_learn"
     ],
 
     keywords=['machine-learning', 'adversarial-machine-learning', 'automation', 'plugin'],

@@ -1,2 +1,3 @@
 Jespipe: An easy-to-use system for conducting adversarial machine 
-learning analysis using OpenMPI and XML control files.
+learning analysis using OpenMPI, XML control files, and
+user-written plugins.

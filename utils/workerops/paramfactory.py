@@ -37,14 +37,15 @@ def manip_factory(dataset_path: str, manip_tag: str, manip_params: str, save_pat
     return pickle_path
 
 
-def train_factory(name: str, model_name: str, dataframe: pd.DataFrame, model_params: dict, manip_params: dict, 
-                    save_path: str, manip_name: str, manip_tag: str, root_path: str) -> str:
+def train_factory(name: str, original_data_path: str, model_name: str, dataframe: pd.DataFrame, model_params: dict, 
+                    manip_params: dict, save_path: str, manip_name: str, manip_tag: str, root_path: str) -> str:
     """
     Create parameter dictionary that will be sent out to the user-specified training plugin
     in the training stage. Save the parameter dictionary as a pickle file.
     
     ### Parameters:
     :param name: Name of the dataset.
+    :param original_data_path: File path to original, unmanipulated dataset.
     :param model_name: Name to use for trained model.
     :param dataframe: Pandas DataFrame to train the model on.
     :param model_params: User-specified hyperparameters for the model being trained.
@@ -61,8 +62,8 @@ def train_factory(name: str, model_name: str, dataframe: pd.DataFrame, model_par
     d = dict()
     
     # Set dataset_name, model_name, dataframe, model parameters, and manipulation parameters
-    d["dataset_name"] = name; d["model_name"] = model_name; d["dataframe"] = dataframe
-    d["model_params"] = model_params; d["manip_params"] = manip_params
+    d["dataset_name"] = name; d["model_name"] = model_name; d["original_dataset"] = original_data_path
+    d["dataframe"] = dataframe; d["model_params"] = model_params; d["manip_params"] = manip_params
 
     # Generate save_path and log_path then add to root dictionary
     log_path = save_path + "/stat"

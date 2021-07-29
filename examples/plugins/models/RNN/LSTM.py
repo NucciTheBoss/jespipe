@@ -1,4 +1,3 @@
-import copy
 from typing import Tuple
 
 import joblib
@@ -185,7 +184,7 @@ class PredictLSTM(Predict):
 
 class EvaluateLSTM(Evaluate):
     def __init__(self, feature_test: np.ndarray, label_test: np.ndarray, 
-                    model_to_eval: Sequential) -> None:
+                    model_to_eval: Sequential, **kwargs) -> None:
         """
         Evaluation class to facilitate evalutions predictions made by fitted Sequential LSTM model.
         
@@ -193,6 +192,8 @@ class EvaluateLSTM(Evaluate):
         :param feature_test: Test features.
         :param label_test: Test labels.
         :param model_to_eval: Sequential LSTM model to evaulate.
+        - kwargs
+          - orig_mean: Normalized mean of the original dataset.
 
         ### Methods:
         - public
@@ -207,6 +208,7 @@ class EvaluateLSTM(Evaluate):
         self.feature_test = feature_test
         self.label_test = label_test
         self.model_to_eval = model_to_eval
+        self.orig_mean = kwargs.get("orig_mean") if kwargs.get("orig_mean") is not None else None 
 
     def model_evaluate(self) -> Tuple[float, float]:
         """
@@ -261,7 +263,7 @@ class EvaluateLSTM(Evaluate):
         ### Returns:
         :return: Scatter index of the Sequential LSTM model's prediction.
         """
-        return np.multiply(np.divide(rmse, np.mean(self.feature_test)), 100)
+        return np.divide(rmse, self.orig_mean)
 
     def _eval_mean_absolute_error(self) -> float:
         """
@@ -280,19 +282,14 @@ if __name__ == "__main__":
 
     # Execute code block based on passed stage from pipeline
     if stage == "train":
-        # Pull necessary information from parameters
-        dataset_name = parameters["dataset_name"]
-        model_name = parameters["model_name"]
-        dataframe = parameters["dataframe"]
-        model_save_path = parameters["save_path"]
-        model_log_path = parameters["log_path"]
-        model_params = parameters["model_params"]
-        manip_params = parameters["manip_params"]
-        manip_info = parameters["manip_info"]
-
         # Normalize data to 0, 1 scale
         sc = MinMaxScaler(feature_range=(0, 1))
-        parameters.update({"dataframe": pd.DataFrame(sc.fit_transform(dataframe))})
+        parameters.update({"dataframe": pd.DataFrame(sc.fit_transform(parameters["dataframe"]))})
+
+        # Create saved copy of the original dataset mean
+        scaled_data = sc.fit_transform(pd.read_csv(parameters["original_dataset"], header=None))
+        original_mean = np.mean(scaled_data)
+        save.pickle_object(parameters["log_path"], "original_mean", original_mean)
 
         # Build the LSTM model
         build_lstm = BuildLSTM(parameters)
@@ -303,48 +300,58 @@ if __name__ == "__main__":
         fit_lstm.model_fit()
 
         # Save data to the model_save_path
-        save.dictionary(model_save_path, "model_parameters", model_params)
-        save.dictionary(model_save_path, "{}_manipulation_parameters".format(manip_info[0]), manip_params)
-        save.features(model_save_path, data[2]); save.labels(model_save_path, data[3])
-        save.compress_dataframe(model_save_path + "/data", "baseline-data-normalized", dataframe)
-        with open(model_save_path + "/model_summary.txt", "wt") as fout: fit_lstm.model.summary(print_fn=lambda x: fout.write(x + "\n"))
-        fit_lstm.model.save(model_save_path + "/{}-{}-{}.h5".format(model_name, manip_info[0], manip_info[1]), include_optimizer=True)
+        save.dictionary(parameters["save_path"], "model_parameters", parameters["model_params"])
+        save.dictionary(parameters["save_path"], "{}_manipulation_parameters".format(parameters["manip_info"][0]), parameters["manip_params"])
+        save.features(parameters["save_path"], data[2]); save.labels(parameters["save_path"], data[3])
+        save.compress_dataframe(parameters["save_path"] + "/data", "baseline-data-normalized", parameters["dataframe"])
+        with open(parameters["save_path"] + "/model_summary.txt", "wt") as fout: fit_lstm.model.summary(print_fn=lambda x: fout.write(x + "\n"))
+        fit_lstm.model.save(parameters["save_path"] + "/{}-{}-{}.h5".format(parameters["model_name"], parameters["manip_info"][0], 
+                            parameters["manip_info"][1]), include_optimizer=True)
 
         # Make a prediction on test set
         predict_lstm = PredictLSTM(fit_lstm.model, data[2])
         prediction = predict_lstm.model_predict()
 
         # Save base prediction for later analysis if desired
-        save.compress_dataframe(model_save_path + "/data", "baseline-prediction", pd.DataFrame(prediction))
+        save.compress_dataframe(parameters["save_path"] + "/data", "baseline-prediction", pd.DataFrame(prediction))
 
         # Evaluate model performance on prediction
-        evaluate_lstm = EvaluateLSTM(data[2], data[3], fit_lstm.model)
+        evaluate_lstm = EvaluateLSTM(data[2], data[3], fit_lstm.model, orig_mean=original_mean)
         mse, rmse, scatter_index, mae = evaluate_lstm.model_evaluate()
         
         # Create dictionary for logging mse and rmse and then save as a pickle to be loaded back into memory during the attacks
         # 0.0 marks 0.0 pertubation bugdet -> baseline performance
         log_dict = {"0.0": {"mse": mse, "rmse": rmse, "scatter_index": scatter_index, "mae": mae}}
-        save.pickle_object(model_log_path, "mse-rmse-si-mae", log_dict)
+        rmse_log_dict = {"0.0": {"rmse": rmse}}
+        mae_log_dict = {"0.0": {"mae": mae}}
+
+        save.pickle_object(parameters["log_path"], "mse-rmse-si-mae", log_dict)
+        save.pickle_object(parameters["log_path"], "rmse", rmse_log_dict)
+        save.pickle_object(parameters["log_path"], "mae", mae_log_dict)
 
     elif stage == "attack":
         # Load in model to evaluate
-        model = parameters["model_path"]; model = load_model(model)
+        model = load_model(parameters["model_path"])
 
         # Load mse-rmse.pkl file to access dictionary
         log_dict = joblib.load(parameters["log_path"] + "/mse-rmse-si-mae.pkl")
-
-        # Load test_features
-        test_labels = parameters["model_labels"]
+        rmse_log_dict = joblib.load(parameters["log_path"] + "/rmse.pkl")
+        mae_log_dict = joblib.load(parameters["log_path"] + "/mae.pkl")
+        original_mean = joblib.load(parameters["log_path"] + "/original_mean.pkl")
 
         # Loop through each of the adversarial examples
         for adversary in parameters["adver_features"]:
-            evaluate_lstm = EvaluateLSTM(joblib.load(adversary), test_labels, model)
+            evaluate_lstm = EvaluateLSTM(joblib.load(adversary), parameters["model_labels"], model, orig_mean=original_mean)
             mse, rmse, scatter_index, mae = evaluate_lstm.model_evaluate()
             perturb_budget = adversary.split("/"); perturb_budget = perturb_budget[-1].split(".pkl"); perturb_budget = perturb_budget[0]
             log_dict.update({perturb_budget: {"mse": mse, "rmse": rmse, "scatter_index": scatter_index, "mae": mae}})
+            rmse_log_dict.update({perturb_budget: {"rmse": rmse}})
+            mae_log_dict.update({perturb_budget: {"mae": mae}})
 
         # Once looping through all the adversarial examples has completed, dump updated log dict
         save.pickle_object(parameters["log_path"], "mse-rmse-si-mae-{}".format(parameters["attack_name"]), log_dict)
+        save.pickle_object(parameters["log_path"], "rmse-{}".format(parameters["attack_name"]), rmse_log_dict)
+        save.pickle_object(parameters["log_path"], "mae-{}".format(parameters["attack_name"]), mae_log_dict)
 
     else:
         raise ValueError("Received invalid stage {}. Please only pass valid stages from the pipeline.".format(stage))

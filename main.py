@@ -555,7 +555,7 @@ elif rank == 1:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[9], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[9], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -781,7 +781,7 @@ elif rank == 2:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -1007,7 +1007,7 @@ elif rank == 3:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -1233,7 +1233,7 @@ elif rank == 4:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -1459,7 +1459,7 @@ elif rank == 5:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -1685,7 +1685,7 @@ elif rank == 6:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")
@@ -1911,7 +1911,7 @@ elif rank == 7:
                     os.makedirs(save_path, exist_ok=True)
 
                     # Create dictionary that will be passed to the training plugin
-                    param_dict = train_factory(task[0], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
+                    param_dict = train_factory(task[0], task[1], task[2], joblib.load(maniped_pickle), task[4], task[8], save_path, task[6], task[7], ROOT_PATH)
 
                     # Spawn plugin execution and block until the training section of the plugin has completed
                     logger.warning("INFO: Training model...")

@@ -138,6 +138,7 @@ if __name__ == "__main__":
 
         ### Parameter dictionary content:
         - `dataset_name`: Name of the data set being used to train the model.
+        - `original_dataset`: File to the original, unmanipulated dataset.
         - `model_name`: Name of the model.
         - `dataframe`: The dataframe containing the data the model is being trained on.
         - `model_params`: Hyperparameters to use for your model.
