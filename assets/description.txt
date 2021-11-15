@@ -1,3 +1,1 @@
-Jespipe: An easy-to-use system for conducting adversarial machine 
-learning analysis using OpenMPI, XML control files, and
-user-written plugins.
+Jespipe: A Plugin-Based, Open MPI Framework for Adversarial Machine Learning Analysis.

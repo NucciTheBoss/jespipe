@@ -114,10 +114,10 @@ With the system-level dependencies and OpenMPI installed on your system, use the
 
 #### Install from release (for production):
 
-To install Jespipe from a release, use the following commands:
+To install Jespipe from a release, first download a [release](https://github.com/NucciTheBoss/jespipe/releases) and then use the following commands:
 
 ```bash
-wget <jespipe-release-goes-here> -O - | tar -xzv -
+tar -xzvf jespipe-<release-number>.tar.gz
 cd jespipe-<release-number>
 pip install -r requirements.txt
 python setup.py install
@@ -169,9 +169,86 @@ under certain conditions; please visit https://github.com/NucciTheBoss/jespipe f
 ## What's Included
 
 ```
-File tree showing avaiable files
+jespipe
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── LICENSE_DOCS
+├── README.md
+├── .config.json
+├── main.py
+├── requirements.txt
+├── setup.py
+├── assets
+├── contrib
+│   ├── build-tools
+│   ├── diagrams
+│   │   └── drawio
+│   └── pseudocode
+├── etc
+│   ├── skel
+│   │   ├── control-templates
+│   │   └── plugin-templates
+│   │       ├── attack
+│   │       ├── manip
+│   │       ├── model
+│   │       └── plot
+│   └── ursula
+├── examples
+│   ├── control-files
+│   ├── datasets
+│   │   ├── google-stock
+│   │   ├── google-stock-xgb
+│   │   └── ozone-level-detection
+│   └── plugins
+│       ├── attacks
+│       ├── manips
+│       ├── models
+│       │   └── RNN
+│       └── plots
+├── jespipe
+│   └── plugin
+│       ├── attack
+│       ├── clean
+│       ├── manip
+│       └── train
+└── utils
+    ├── appinfo
+    ├── filesystem
+    ├── managerops
+    ├── workeradmin
+    └── workerops
 ```
-*Fast overview of all the directories included in the source release*.
+
+There are about 80+ files distributed with a release of Jespipe so it would not be practical to go through all of them, but here is a list of the most important files and directories:
+
+#### Files
+
+* `README.md` - A copy of this README.
+
+* `LICENSE` - A copy of the GNU General Public License version 3.
+
+* `.config.json` - Default configuration file for Jespipe.
+
+* `main.py` - **The Jespipe application.**
+
+* `requirements.txt` - File to install all of Jespipe's external dependencies.
+
+* `setup.py` - File to install *jespipe-plugin* module.
+
+#### Directories
+
+* `assets` - Pictures and text files used by Jespipe.
+
+* `contrib` - Files to help with the development of Jespipe.
+
+* `etc` - Extra configuration files and skeleton files for Jespipe.
+
+* `examples` - Examples for Jespipe.
+
+* `jespipe` - The *jespipe-plugin* module needed for plugins.
+
+* `utils` - Helper functions used by Jespipe.
 
 ## Documentation
 
@@ -200,13 +277,13 @@ See the [releases section of Jespipe's repository](https://github.com/NucciTheBo
 
 ## Creators
 
-* Jason C. Nucciarone - Pennsylvania State University - Author
+* Jason C. Nucciarone - Pennsylvania State University - Lead Author
   * [LinkedIn](https://www.linkedin.com/in/jasonnucci/)
 
-* Eric Inae - Andrews University - Contributor
+* Eric Inae - Andrews University - Attack Plugin Contributor
   * [LinkedIn](https://www.linkedin.com/in/eric-inae-6056b1214)
 
-* Sheila Alemany - Florida International University - Contributor
+* Sheila Alemany - Florida International University - Data Manipulation and Model Training Plugin Contributor
   * [Sheila's Personal Site](https://sheilaalemany.github.io/)
   * [LinkedIn](https://www.linkedin.com/in/sheilaalemany)
 
@@ -216,13 +293,13 @@ Code and documentation copyright &copy; 2021 Jason C. Nucciarone, Eric Inae, and
 
 ## Citation
 
-If you use Jespipe in your work, please cite our ~~[paper]()~~:
+**If you use Jespipe for your research,** please include the following citation in your paper:
 
 ```
-@article{Jespipe,
-  title={TODO},
-  author{Sheila Alemany+, Jason Carmine Nucciarone+, Eric Inae, and Niki Pissinou},
-  journal{TODO},
+@inproceedings{Jespipe,
+  title={Jespipe: A Plugin-Based, Open MPI Framework for Adversarial Machine Learning Analysis},
+  author{Alemany, Sheila and Nucciarone, Jason and Pissinou, Niki},
+  booktitle={Proceedings of the IEEE Big Data International Workshop on Big Data Tools, Methods, and Use Cases for Innovative Scientific Discovery},
   year={2021}
 }
 ```
