@@ -277,13 +277,13 @@ See the [releases section of Jespipe's repository](https://github.com/NucciTheBo
 
 ## Creators
 
-* Jason C. Nucciarone - Pennsylvania State University - Author
+* Jason C. Nucciarone - Pennsylvania State University - Lead Author
   * [LinkedIn](https://www.linkedin.com/in/jasonnucci/)
 
-* Eric Inae - Andrews University - Contributor
+* Eric Inae - Andrews University - Attack Plugin Contributor
   * [LinkedIn](https://www.linkedin.com/in/eric-inae-6056b1214)
 
-* Sheila Alemany - Florida International University - Contributor
+* Sheila Alemany - Florida International University - Data Manipulation and Model Training Plugin Contributor
   * [Sheila's Personal Site](https://sheilaalemany.github.io/)
   * [LinkedIn](https://www.linkedin.com/in/sheilaalemany)
 
@@ -293,13 +293,13 @@ Code and documentation copyright &copy; 2021 Jason C. Nucciarone, Eric Inae, and
 
 ## Citation
 
-**Our paper for Jespipe is still a work in progress**, but if you use Jespipe in your work before we have finished our paper, please use the following citation in your paper:
+**If you use Jespipe for your research,** please include the following citation in your paper:
 
 ```
-@article{Jespipe,
-  title={Jespipe: An easy-to-use system for conducting adversarial machine learning analysis.},
-  author{Sheila Alemany+, Jason C. Nucciarone+, Eric Inae, and Niki Pissinou},
-  journal{https://github.com/NucciTheBoss/jespipe},
+@inproceedings{Jespipe,
+  title={Jespipe: A Plugin-Based, Open MPI Framework for Adversarial Machine Learning Analysis},
+  author{Alemany, Sheila and Nucciarone, Jason and Pissinou, Niki},
+  booktitle={Proceedings of the IEEE Big Data International Workshop on Big Data Tools, Methods, and Use Cases for Innovative Scientific Discovery},
   year={2021}
 }
 ```
