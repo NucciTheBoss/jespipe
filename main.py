@@ -81,7 +81,7 @@ if rank == 0:
         exit()
 
     if args.license:
-        licenseinfo("Jespipe: An easy-to-use system for conducting adversarial machine learning analysis.", "2021",
+        licenseinfo("Jespipe: A Plugin-Based, Open MPI Framework for Adversarial Machine Learning Analysis", "2021",
                     "Jason C. Nucciarone", "Eric Inae", "Sheila Alemany")
         exit()
 
