@@ -299,7 +299,8 @@ Code and documentation copyright &copy; 2021 Jason C. Nucciarone, Eric Inae, and
 @inproceedings{Jespipe,
   title={Jespipe: A Plugin-Based, Open MPI Framework for Adversarial Machine Learning Analysis},
   author{Alemany, Sheila and Nucciarone, Jason and Pissinou, Niki},
-  booktitle={Proceedings of the IEEE Big Data International Workshop on Big Data Tools, Methods, and Use Cases for Innovative Scientific Discovery},
-  year={2021}
+  booktitle={2021 IEEE International Conference on Big Data (Big Data)},
+  year={2021},
+  organization={IEEE}
 }
 ```
